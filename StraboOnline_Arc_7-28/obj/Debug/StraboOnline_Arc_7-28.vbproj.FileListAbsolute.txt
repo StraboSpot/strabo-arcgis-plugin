@@ -1,0 +1,14 @@
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.vbprojResolveAssemblyReference.cache
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7_28.Download.resources
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7_28.Resources.resources
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7_28.Upload.resources
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.vbproj.GenerateResource.Cache
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.dll
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.pdb
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.xml
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\Ionic.Zip.dll
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\Ionic.Zlib.dll
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.dll
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.xml
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.pdb
+C:\Users\User\Documents\Visual Studio 2013\Projects\StraboOnline_Arc_7-28\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.esriAddIn
