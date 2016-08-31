@@ -403,6 +403,10 @@ Public Class Download
         Dim assocOri As Object
         Dim aoData As New StringBuilder()
         Dim otherFeat As Object
+        Dim Client As New WebClient
+        Dim imgFile As String
+        Dim imgID As String
+        Client.Credentials = New NetworkCredential(emailaddress, password)
 
         'Set the arcpy workspace environment- important because features will need to be saved here
         Dim envPath As String
@@ -773,8 +777,14 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
-                                        If parts(0).Equals("self") Then
+                                        If parts(0).Equals("id") Then
+                                            imgID = parts(1)
+                                            Debug.Print(imgID)
+                                        ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            imgFile = fileName + "\" + imgID + ".tiff"
+                                            Debug.Print(imgFile)
+                                            Client.DownloadFile(parts(1), imgFile)
                                         Else
                                             Continue For
                                         End If
@@ -1232,8 +1242,14 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
-                                        If parts(0).Equals("self") Then
+                                        If parts(0).Equals("id") Then
+                                            imgID = parts(1)
+                                            Debug.Print(imgID)
+                                        ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            imgFile = fileName + "\" + imgID + ".tiff"
+                                            Debug.Print(imgFile)
+                                            Client.DownloadFile(parts(1), imgFile)
                                         Else
                                             Continue For
                                         End If
@@ -1710,8 +1726,14 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
-                                        If parts(0).Equals("self") Then
+                                        If parts(0).Equals("id") Then
+                                            imgID = parts(1)
+                                            Debug.Print(imgID)
+                                        ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            imgFile = fileName + "\" + imgID + ".tiff"
+                                            Debug.Print(imgFile)
+                                            Client.DownloadFile(parts(1), imgFile)
                                         Else
                                             Continue For
                                         End If

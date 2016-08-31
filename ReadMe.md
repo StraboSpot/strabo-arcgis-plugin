@@ -1,1 +1,1 @@
-Strabo_ArcGIS Add-in
+Strabo_ArcGIS Add-in for ArcMap
