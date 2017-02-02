@@ -32,7 +32,7 @@ Public Class Download
     Private Sub linklabel1_Linkclicked(ByVal sender As Object, ByVal e As Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
 
         Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("http://www.strabospot.org")
+        System.Diagnostics.Process.Start("https://www.strabospot.org")
 
     End Sub
 
@@ -59,7 +59,7 @@ Public Class Download
             Dim isvalid As String
 
             's = HttpWebRequest.Create("192.168.0.5")
-            s = HttpWebRequest.Create("http://strabospot.org/userAuthenticate")
+            s = HttpWebRequest.Create("https://strabospot.org/userAuthenticate")
             enc = New System.Text.UTF8Encoding()
             postdata = "{""email"" : """ + emailaddress + """,""password"" : """ + password + """}"
             postdatabytes = enc.GetBytes(postdata)
@@ -126,7 +126,7 @@ Public Class Download
         Dim binaryauthorization As Byte()
 
         'Get Project list first- "Get My Projects" from the Strabo API
-        s = HttpWebRequest.Create("http://www.strabospot.org/db/myProjects")
+        s = HttpWebRequest.Create("https://www.strabospot.org/db/myProjects")
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
         s.ContentType = "application/json"
@@ -206,7 +206,7 @@ Public Class Download
         Dim authorization As String
         Dim binaryauthorization As Byte()
 
-        Dim uri As String = "http://www.strabospot.org/db/projectDatasets/" + selprojectNum
+        Dim uri As String = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
         s = HttpWebRequest.Create(uri)
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
@@ -417,7 +417,7 @@ Public Class Download
         'Here, the code will launch a For Each statement to create three separate ESRI JSON 
         'formatted files- Point, Line, and Polygon
 
-        fieldsURL = "http://www.strabospot.org/db/datasetFields/" + selDatasetNum
+        fieldsURL = "https://www.strabospot.org/db/datasetFields/" + selDatasetNum
         Debug.Print(fieldsURL)
 
         Dim geometries As ArrayList = New ArrayList()
@@ -467,11 +467,11 @@ Public Class Download
                     esriJson.Append("{" + Environment.NewLine + """displayFieldName"" : " + """" + selDataset + """" + "," + Environment.NewLine)
                     esriJson.Append("""fieldAliases"" : {" + Environment.NewLine)
                     esriJson.Append("""FID"" : ""FID""," + Environment.NewLine)
-                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+
 
                     For Each i In f
                         'Add each field to the Field Aliases array 
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
@@ -484,7 +484,8 @@ Public Class Download
                         End If
                         'Debug.Print(i)
                     Next
-
+                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""FeatID"" : ""FeatID""," + Environment.NewLine)
                     'Complete the rest of the Points File 
                     esriJson.Remove(esriJson.Length - 3, 3)
                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine)
@@ -499,15 +500,11 @@ Public Class Download
                     esriJson.Append("""name"" : ""FID""," + Environment.NewLine)
                     esriJson.Append("""type"" : ""esriFieldTypeOID""," + Environment.NewLine)
                     esriJson.Append("""alias"" : ""FID""" + Environment.NewLine)
-                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
-                    esriJson.Append("""name"" : ""SpotID""," + Environment.NewLine)
-                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
-                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
                     esriJson.Append("}")
 
                     'Add the fields to the array 
                     For Each i In f
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
@@ -546,11 +543,20 @@ Public Class Download
                             esriJson.Append("}")
                         End If
                     Next
+                    esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine + """name"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
+                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
+                    esriJson.Append("""name"" : ""FeatID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""FeatID""" + Environment.NewLine)
+                    esriJson.Append("}")
+
                     'Write all the Spots of type point to Features array
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("http://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/point")
+                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/point")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -596,6 +602,9 @@ Public Class Download
                                     parts = strLine.Split(New Char() {","}, 2)
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If Not parts(0).Equals("self") Then
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     End If
@@ -626,6 +635,9 @@ Public Class Download
                                     Debug.Print(parts(0), parts(1))
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
@@ -643,6 +655,9 @@ Public Class Download
                                     Debug.Print(parts(0), parts(1))
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                 Next
                             End If
@@ -673,6 +688,9 @@ Public Class Download
                                                     parts = strLine.Split(New Char() {","}, 2)
                                                     parts(1) = Replace(parts(1), vbLf, " ")
                                                     parts(1) = Replace(parts(1), """", "'")
+                                                    If parts(0).Equals("id") Then
+                                                        parts(0) = "FeatID"
+                                                    End If
                                                     aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -690,6 +708,9 @@ Public Class Download
                                                 elementList = elementList + i + ", "
                                             Next
                                             elementList.TrimEnd(", ")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             ' Debug.Print(elementList)
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + elementList + """")
                                         Else
@@ -697,6 +718,9 @@ Public Class Download
                                             parts = strLine.Split(New Char() {","}, 2)
                                             parts(1) = Replace(parts(1), vbLf, " ")
                                             parts(1) = Replace(parts(1), """", "'")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                         End If
                                     Next
@@ -728,6 +752,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -754,6 +781,9 @@ Public Class Download
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -779,9 +809,11 @@ Public Class Download
                                         parts(1) = Replace(parts(1), """", "'")
                                         If parts(0).Equals("id") Then
                                             imgID = parts(1)
+                                            parts(0) = "FeatID"
                                             Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            'Download the image to same file Json files are saved
                                             imgFile = fileName + "\" + imgID + ".tiff"
                                             Debug.Print(imgFile)
                                             Client.DownloadFile(parts(1), imgFile)
@@ -810,6 +842,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
@@ -914,10 +949,10 @@ Public Class Download
                     esriJson.Append("{" + Environment.NewLine + """displayFieldName"" : " + """" + selDataset + """" + "," + Environment.NewLine)
                     esriJson.Append("""fieldAliases"" : {" + Environment.NewLine)
                     esriJson.Append("""FID"" : ""FID""," + Environment.NewLine)
-                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+
                     For Each i In f
                         'Add each field to the Field Aliases array 
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
@@ -930,7 +965,8 @@ Public Class Download
                         End If
                         'Debug.Print(i)
                     Next
-
+                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""FeatID"" : ""FeatID""," + Environment.NewLine)
                     'Complete the rest of the Line File 
                     esriJson.Remove(esriJson.Length - 3, 3)
                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine)
@@ -945,15 +981,11 @@ Public Class Download
                     esriJson.Append("""name"" : ""FID""," + Environment.NewLine)
                     esriJson.Append("""type"" : ""esriFieldTypeOID""," + Environment.NewLine)
                     esriJson.Append("""alias"" : ""FID""" + Environment.NewLine)
-                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
-                    esriJson.Append("""name"" : ""SpotID""," + Environment.NewLine)
-                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
-                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
                     esriJson.Append("}")
 
                     'Add the fields to the array 
                     For Each i In f
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
@@ -992,11 +1024,19 @@ Public Class Download
                             esriJson.Append("}")
                         End If
                     Next
+                    esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine + """name"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
+                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
+                    esriJson.Append("""name"" : ""FeatID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""FeatID""" + Environment.NewLine)
+                    esriJson.Append("}")
                     'Write all the Spots of type point to Features array
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("http://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/line")
+                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/line")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -1041,6 +1081,9 @@ Public Class Download
                                     parts = strLine.Split(New Char() {","}, 2)
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If Not parts(0).Equals("self") Then
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     End If
@@ -1068,6 +1111,9 @@ Public Class Download
                                     parts = strLine.Split(New Char() {","}, 2)
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
@@ -1085,6 +1131,9 @@ Public Class Download
                                     Debug.Print(parts(0), parts(1))
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                 Next
                             End If
@@ -1120,6 +1169,9 @@ Public Class Download
                                                     parts = strLine.Split(New Char() {","}, 2)
                                                     parts(1) = Replace(parts(1), vbLf, " ")
                                                     parts(1) = Replace(parts(1), """", "'")
+                                                    If parts(0).Equals("id") Then
+                                                        parts(0) = "FeatID"
+                                                    End If
                                                     aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -1143,6 +1195,9 @@ Public Class Download
                                                 elementList = elementList + i + ", "
                                             Next
                                             elementList.TrimEnd(", ")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             'Debug.Print(elementList)
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + elementList + """")
                                         Else
@@ -1150,6 +1205,9 @@ Public Class Download
                                             parts = strLine.Split(New Char() {","}, 2)
                                             parts(1) = Replace(parts(1), vbLf, " ")
                                             parts(1) = Replace(parts(1), """", "'")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                         End If
                                     Next
@@ -1185,6 +1243,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -1212,6 +1273,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
@@ -1247,6 +1311,7 @@ Public Class Download
                                             Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            'Download the image to same file Json files are saved
                                             imgFile = fileName + "\" + imgID + ".tiff"
                                             Debug.Print(imgFile)
                                             Client.DownloadFile(parts(1), imgFile)
@@ -1280,6 +1345,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
@@ -1379,10 +1447,10 @@ Public Class Download
                     esriJson.Append("{" + Environment.NewLine + """displayFieldName"" : " + """" + selDataset + """" + "," + Environment.NewLine)
                     esriJson.Append("""fieldAliases"" : {" + Environment.NewLine)
                     esriJson.Append("""FID"" : ""FID""," + Environment.NewLine)
-                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+
                     For Each i In f
                         'Add each field to the Field Aliases array 
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
@@ -1395,7 +1463,8 @@ Public Class Download
                         End If
                 'Debug.Print(i)
                     Next
-
+                    esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""FeatID"" : ""FeatID""," + Environment.NewLine)
                     'Complete the rest of the Points File 
                     esriJson.Remove(esriJson.Length - 3, 3)
                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine)
@@ -1410,15 +1479,11 @@ Public Class Download
                     esriJson.Append("""name"" : ""FID""," + Environment.NewLine)
                     esriJson.Append("""type"" : ""esriFieldTypeOID""," + Environment.NewLine)
                     esriJson.Append("""alias"" : ""FID""" + Environment.NewLine)
-                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
-                    esriJson.Append("""name"" : ""SpotID""," + Environment.NewLine)
-                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
-                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
                     esriJson.Append("}")
 
                     'Add the fields to the array 
                     For Each i In f
-                        If i.Equals("trace") Then
+                        If i.Equals("trace") Or i.Equals("id") Then
                             Continue For
                         ElseIf i.Equals("_3d_structures") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
@@ -1457,11 +1522,19 @@ Public Class Download
                             esriJson.Append("}")
                         End If
                     Next
+                    esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine + """name"" : ""SpotID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""SpotID""" + Environment.NewLine)
+                    esriJson.Append("}," + Environment.NewLine + "{" + Environment.NewLine)
+                    esriJson.Append("""name"" : ""FeatID""," + Environment.NewLine)
+                    esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                    esriJson.Append("""alias"" : ""FeatID""" + Environment.NewLine)
+                    esriJson.Append("}")
                     'Write all the Spots of type point to Features array
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("http://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/polygon")
+                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/polygon")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -1506,6 +1579,9 @@ Public Class Download
                                     parts = strLine.Split(New Char() {","}, 2)
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If Not parts(0).Equals("self") Then
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     End If
@@ -1533,6 +1609,9 @@ Public Class Download
                                     parts = strLine.Split(New Char() {","}, 2)
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
@@ -1550,6 +1629,9 @@ Public Class Download
                                     Debug.Print(parts(0), parts(1))
                                     parts(1) = Replace(parts(1), vbLf, " ")
                                     parts(1) = Replace(parts(1), """", "'")
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "FeatID"
+                                    End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                 Next
                             End If
@@ -1590,6 +1672,9 @@ Public Class Download
                                                     parts = strLine.Split(New Char() {","}, 2)
                                                     parts(1) = Replace(parts(1), vbLf, " ")
                                                     parts(1) = Replace(parts(1), """", "'")
+                                                    If parts(0).Equals("id") Then
+                                                        parts(0) = "FeatID"
+                                                    End If
                                                     aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -1615,6 +1700,9 @@ Public Class Download
                                                 elementList = elementList + i + ", "
                                             Next
                                             elementList.TrimEnd(", ")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             'Debug.Print(elementList)
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + elementList + """")
                                         Else
@@ -1622,6 +1710,9 @@ Public Class Download
                                             parts = strLine.Split(New Char() {","}, 2)
                                             parts(1) = Replace(parts(1), vbLf, " ")
                                             parts(1) = Replace(parts(1), """", "'")
+                                            If parts(0).Equals("id") Then
+                                                parts(0) = "FeatID"
+                                            End If
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                         End If
                                     Next
@@ -1660,6 +1751,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -1692,6 +1786,9 @@ Public Class Download
                                         parts = strLine.Split(New Char() {","}, 2)
                                         parts(1) = Replace(parts(1), vbLf, " ")
                                         parts(1) = Replace(parts(1), """", "'")
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "FeatID"
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
@@ -1731,6 +1828,7 @@ Public Class Download
                                             Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            'Download the image to same file Json files are saved
                                             imgFile = fileName + "\" + imgID + ".tiff"
                                             Debug.Print(imgFile)
                                             Client.DownloadFile(parts(1), imgFile)
@@ -1831,7 +1929,7 @@ Public Class Download
             '////////////////////////////////////////////////////////////////////////////////////////////////////////
         Next
 
-        'Activate any existing hyperlinks for each layer with "self" field
+        'Activate any existing hyperlinks for each layer with "self" field and change required fields
         dt = "self"
         If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
             'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
@@ -1840,19 +1938,21 @@ Public Class Download
             Dim pMap As ESRI.ArcGIS.Carto.IMap
             pMxDoc = My.ArcMap.Application.Document
             pMap = pMxDoc.FocusMap
-            Dim featLayer As IFeatureLayer2
+            Dim featLayer As IFeatureLayer
             Dim pLayerCount As Integer = pMap.LayerCount
+            Dim featClass As IFeatureClass
             'Debug.Print(pLayerCount)
             Dim index As Integer = 0
             While index < pLayerCount
+                'Hyperlink settings
                 featLayer = pMap.Layer(index)
+                featClass = featLayer.FeatureClass
                 Dim hLContainer As IHotlinkContainer = featLayer
                 hLContainer.HotlinkField = hotlinkField
                 hLContainer.HotlinkType = esriHyperlinkType.esriHyperlinkTypeURL
                 index += 1
             End While
         End If
-
         MessageBox.Show("All Feature Classes Loaded.")
     End Sub
 

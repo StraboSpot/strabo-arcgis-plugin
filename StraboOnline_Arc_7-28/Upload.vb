@@ -19,6 +19,8 @@ Imports ESRI.ArcGIS.ConversionTools
 Imports ESRI.ArcGIS.DataManagementTools
 Imports ESRI.ArcGIS.Geoprocessor
 Imports ESRI.ArcGIS.Carto
+Imports Newtonsoft.Json
+Imports Newtonsoft.Json.Linq
 
 Public Class Upload
 
@@ -52,6 +54,19 @@ Public Class Upload
     Dim mapIndicesList As System.Array
     Dim selIndex As Integer
 
+    Dim sr As StreamReader
+    Dim wholeFile As String()
+    Dim sb As New StringBuilder()
+    Dim esriFile As String
+    Dim phrase As String() = {"""attributes"""}
+    Dim attributes As List(Of String)
+    Dim numAttributes As Integer
+    Dim numLines As Integer = 0
+    Dim parts As String()
+    Dim delChars As Char() = {"{", "}", "[", "]"}
+    Dim attr As String()
+    Dim spots As Integer = 0
+
     Public Shared Function checkDatasetType(ByVal fC As IFeatureClass) As Boolean
         If fC.Fields.FindField("SpotID") >= 0 Then
             Return True
@@ -81,10 +96,286 @@ Public Class Upload
         Return browser
     End Function
 
+    Public Shared Function CompareSpotIDs(ByVal origID As String, ByVal wholeESRI As String) As String
+        Dim strLine() As String
+        Dim block As String
+        Dim sndSplit() As String
+        Dim delim As String() = New String() {"""SpotID""" + "  " + """" + origID + """" + ","}
+        Dim delim2 As String() = New String() {"""SpotID"""}
+        If wholeESRI.Contains(origID) Then
+            strLine = wholeESRI.Split(delim, StringSplitOptions.None)
+            sndSplit = strLine(1).Split(delim2, StringSplitOptions.None)
+            block = sndSplit(0).Trim
+        End If
+        'Debug.Print(block)
+        Return block
+    End Function
+
+    Public Shared Function CompareESRItoOrig(ByVal spotID As String, ByVal wholeJSON As Object, ByVal ESRIblock As String) As Object
+        Dim spot As Object
+        Dim thisSpot As Object
+        Dim splitESRI As String() = ESRIblock.Split(Environment.NewLine)
+        Dim currentLine As String()
+        Dim spotGeo As Object
+        Dim changesCount As Integer = 0
+        Dim traceData As Object
+        Dim oriData As Object
+        Dim oriID As Object
+        Dim _3dData As Object
+        Dim _3dID As Object
+        Dim sampleData As Object
+        Dim sampleID As Object
+        Dim aoData As Object
+        Dim rockUnit As Object
+        Dim chunkNum As Integer
+        Dim rand As Random = New Random
+        Dim randDig As String = rand.Next(1, 10)
+        Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
+        Dim unixTime As Int64
+        Dim lineUsed As Integer
+        Dim newValue As JToken
+        Dim innerID As String = ""
+        Dim aoID As Object
+        Dim lineExists As Boolean
+        Dim blockNum As Integer
+        Dim keyExists As Boolean
+        Dim value As String = ""
+        'Begin to loop through the wholeJSON file to find the corresponding spot
+        For Each spot In wholeJSON("features")
+            thisSpot = spot("properties")
+            spotGeo = spot("geometry")("coordinates")
+            'Find the spot which matches with the ESRIblock 
+            If (thisSpot("id")).ToString.Equals(spotID) Then
+                'Loop through ESRIblock for current spot info
+                For Each ln In splitESRI
+                    If ln.Contains("""geometry"": ") Then Continue For
+                    lineUsed = 0
+                    currentLine = ln.Split(New Char() {" "}, 2)
+                    currentLine(0) = currentLine(0).Replace(vbLf, "")
+                    currentLine(1) = currentLine(1).Replace(""" ", """")
+                    currentLine(1) = currentLine(1).Replace(""",", """")
+                    currentLine(1) = currentLine(1).TrimEnd(",").Trim
+                    currentLine(0) = currentLine(0).TrimStart("""").TrimEnd("""")
+                    currentLine(1) = currentLine(1).TrimStart("""").TrimEnd("""")
+                    If currentLine(0).Equals("modified_timestamp") Or currentLine(0).Equals("date") _
+                        Or currentLine(0).Equals("time") Or currentLine(0).Equals("self") Or currentLine(0).Equals("type") Then Continue For
+                    Debug.Print("ESRI Data: " + currentLine(0) + " " + currentLine(1))
+                    If String.IsNullOrEmpty(currentLine(1)) Then
+                        'Debug.Print("The ESRI value returned is null...")
+                        currentLine(1) = ""
+                    End If
+                    ''Save additional IDs within the spot array for use in complex arrays
+                    If currentLine(0).Equals("id") Then
+                        If currentLine(1).Contains(spotID) Then
+                            Continue For
+                        Else
+                            innerID = currentLine(1)
+                            'Debug.Print("Inner ID: " + innerID)
+                            Continue For
+                        End If
+                    End If
+                    If currentLine(0).Equals("x") Or currentLine(0).Equals("y") Then
+                        If spotGeo(1).ToString.Equals(currentLine(1)) Or spotGeo(0).ToString.Equals(currentLine(1)) Then
+                            'Debug.Print("Same geometry coordinates...")
+                        Else
+                            'Debug.Print("Different coordinates...")
+                            If currentLine(0).Equals("x") Then
+                                spotGeo(0) = currentLine(1)
+                                changesCount += 1
+                            ElseIf currentLine(1).Equals("y") Then
+                                spotGeo(1) = currentLine(1)
+                                changesCount += 1
+                            End If
+                        End If
+                        Continue For
+                    End If
+                    Try
+                        'Check if the value is in the outermost array of the spot's info
+                        keyExists = thisSpot.ContainsKey(currentLine(0))
+                        If keyExists.Equals(True) And innerID.Equals("") Then   'If the key exists and there is no innerID yet, must belong to outermost array of info
+                            lineExists = thisSpot.TryGetValue(currentLine(0), value)
+                            If String.IsNullOrEmpty(value) Then
+                                value = ""
+                            End If
+                            If value.Equals(currentLine(1)) Then
+                                'Debug.Print("KVP exists")
+                                Exit Try
+                            ElseIf lineExists.Equals(True) Then
+                                thisSpot(currentLine(0)) = currentLine(1)
+                                Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                changesCount += 1
+                            End If
+
+                        ElseIf keyExists.Equals(False) Or (keyExists.Equals(True) And innerID <> ("")) Then
+                            'If the key value is in the outermost array and belongs there (i.e. has not advanced to other Key arrays) then replace with CL value
+                            Try
+                                If thisSpot.ContainsKey("rock_unit") Then
+                                    rockUnit = thisSpot("rock_unit")
+                                    keyExists = rockUnit.ContainsKey(currentLine(0))
+                                    If keyExists.Equals(True) Then
+                                        lineExists = rockUnit.TryGetValue(currentLine(0), value)
+                                        If String.IsNullOrEmpty(value) Then
+                                            value = ""
+                                        End If
+                                        If value.Equals(currentLine(1)) Then
+                                            'Debug.Print("KVP exists")
+                                            Exit Try
+                                        ElseIf lineExists.Equals(True) Then
+                                            rockUnit(currentLine(0)) = currentLine(1)
+                                            'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                            changesCount += 1
+                                        End If
+                                    End If
+                                End If
+                                If thisSpot.ContainsKey("trace") Then
+                                    traceData = thisSpot("trace")
+                                    keyExists = traceData.ContainsKey(currentLine(0))
+                                    If keyExists.Equals(True) Then
+                                        lineExists = traceData.TryGetValue(currentLine(0), value)
+                                        If String.IsNullOrEmpty(value) Then
+                                            value = ""
+                                        End If
+                                        If value.Equals(currentLine(1)) Then
+                                            'Debug.Print("KVP exists")
+                                            Exit Try
+                                        ElseIf lineExists.Equals(True) Then
+                                            traceData(currentLine(0)) = currentLine(1)
+                                            'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                            changesCount += 1
+                                        End If
+                                    End If
+                                End If
+                                If thisSpot.ContainsKey("samples") Then
+                                    chunkNum = 0
+                                    sampleData = thisSpot("samples")
+                                    For Each chunk In sampleData
+                                        sampleID = (chunk)("id")
+                                        If sampleID.ToString.Contains(innerID) Then
+                                            keyExists = (sampleData(chunkNum)).ContainsKey(currentLine(0))
+                                            If keyExists.Equals(True) Then
+                                                lineExists = (sampleData(chunkNum)).TryGetValue(currentLine(0), value)
+                                                If String.IsNullOrEmpty(value) Then
+                                                    value = ""
+                                                End If
+                                                If value.Equals(currentLine(1)) Then
+                                                    'Debug.Print("KVP exists")
+                                                    Exit Try
+                                                ElseIf lineExists.Equals(True) Then
+                                                    sampleData(currentLine(0)) = currentLine(1)
+                                                    'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                                    changesCount += 1
+                                                End If
+                                            End If
+                                        End If
+                                        chunkNum += 1
+                                    Next
+                                End If
+                                If thisSpot.ContainsKey("orientation_data") Then
+                                    chunkNum = 0
+                                    oriData = thisSpot("orientation_data")
+                                    For Each chunk In oriData
+                                        oriID = (chunk)("id")
+                                        If oriData(chunkNum).ContainsKey("associated_orientation") Then
+                                            aoData = oriData(chunkNum)("associated_orientation")
+                                            blockNum = 0
+                                            For Each block In aoData
+                                                aoID = block("id")
+                                                If aoID.ToString.Contains(innerID) Then
+                                                    keyExists = (aoData(blockNum)).ContainsKey(currentLine(0))
+                                                    If keyExists.Equals(True) Then
+                                                        lineExists = (aoData(blockNum)).TryGetValue(currentLine(0), value)
+                                                        If String.IsNullOrEmpty(value) Then
+                                                            value = ""
+                                                        End If
+                                                        If value.Equals(currentLine(1)) Then
+                                                            'Debug.Print("KVP exists")
+                                                            Exit Try
+                                                        ElseIf lineExists.Equals(True) Then
+                                                            aoData(blockNum)(currentLine(0)) = currentLine(1)
+                                                            'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                                            changesCount += 1
+                                                        End If
+                                                    End If
+                                                End If
+                                                blockNum += 1
+                                            Next
+                                        End If
+                                        If oriID.ToString.Contains(innerID) Then
+                                            keyExists = (oriData(chunkNum)).ContainsKey(currentLine(0))
+                                            If keyExists.Equals(True) Then
+                                                lineExists = (oriData(chunkNum)).TryGetValue(currentLine(0), value)
+                                                If String.IsNullOrEmpty(value) Then
+                                                    value = ""
+                                                End If
+                                                If value.Equals(currentLine(1)) Then
+                                                    'Debug.Print("KVP exists")
+                                                    Exit Try
+                                                ElseIf lineExists.Equals(True) Then
+                                                    oriData(chunkNum)(currentLine(0)) = currentLine(1)
+                                                    'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                                    changesCount += 1
+                                                End If
+                                            End If
+                                        End If
+                                        chunkNum += 1
+                                    Next
+                                End If
+                                If thisSpot.ContainsKey("_3d_structures") Then
+                                    chunkNum = 0
+                                    _3dData = thisSpot("_3d_structures")
+                                    For Each chunk In _3dData
+                                        _3dID = chunk("id")
+                                        If _3dID.ToString.Contains(innerID) Then
+                                            keyExists = (_3dData(chunkNum)).ContainsKey(currentLine(0))
+                                            If keyExists.Equals(True) Then
+                                                lineExists = (_3dData(chunkNum)).TryGetValue(currentLine(0), value)
+                                                If String.IsNullOrEmpty(value) Then
+                                                    value = ""
+                                                End If
+                                                If value.Equals(currentLine(1)) Then
+                                                    'Debug.Print("KVP exists")
+                                                    Exit Try
+                                                ElseIf lineExists.Equals(True) And innerID.Equals("") Then
+                                                    _3dData(chunkNum)(currentLine(0)) = currentLine(1)
+                                                    'Debug.Print("Changed: " + currentLine(0) + currentLine(1))
+                                                    changesCount += 1
+                                                End If
+                                            End If
+                                        End If
+                                        chunkNum += 1
+                                    Next
+                                End If
+                                'If the key was never found (it was a new key:value made in ArcMap) then add it to the large array
+                                If keyExists.Equals(False) Then
+                                    'Debug.Print("KVP does not exist")
+                                    newValue = currentLine(1)
+                                    thisSpot.Add(currentLine(0), newValue)
+                                    changesCount += 1
+                                End If
+                                If changesCount > 0 Then
+                                    Debug.Print("Changes made")
+                                    unixTime = (DateTime.Now - startEpoch).TotalMilliseconds
+                                    thisSpot("modified_timestamp") = unixTime
+                                End If
+                            Catch ex As Exception
+                                Debug.Print("Inner exception: " + ex.Message.ToString)
+                            End Try
+                        End If
+                    Catch ex As Exception
+                        Debug.Print(ex.Message.ToString)
+                    End Try
+                Next
+            Else
+                Continue For
+            End If
+            Return wholeJSON
+        Next
+    End Function
+
     Private Sub linklabel1_Linkclicked(ByVal sender As Object, ByVal e As Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
 
         Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("http://www.strabospot.org")
+        System.Diagnostics.Process.Start("https://www.strabospot.org")
 
     End Sub
 
@@ -131,11 +422,12 @@ Public Class Upload
             'Create a new Strabo Project 
             Dim rand As Random = New Random
             Dim randDig As String = rand.Next(1, 10)
-            Dim uri As String = "http://strabospot.org/db/project"
+            Dim uri As String = "https://strabospot.org/db/project"
             Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
-            Dim modTimeStamp As Int64 = (DateTime.Now - startEpoch).TotalMilliseconds
+            Debug.Print(DateTime.Now)
+            Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
             Dim prjid As String = modTimeStamp.ToString + randDig
-            Dim today As String = Date.Today
+            Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
             Dim prjName As String = TextBox1.Text
             Dim self As String = uri + "/" + prjid
             Dim prjData As New StringBuilder()
@@ -174,7 +466,7 @@ Public Class Upload
 
                 Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                 isCreated = p.ToString
-
+                Debug.Print("Response from created project " + isCreated)
                 If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
                     MessageBox.Show("Error creating Strabo Project. Try your request again.")
                     TextBox1.Clear()
@@ -211,6 +503,7 @@ Public Class Upload
                 Else
                     fileName = ws
                 End If
+                Debug.Print(fileName)
                 If Not System.IO.Directory.Exists(fileName) Then
                     System.IO.Directory.CreateDirectory(fileName)
                 End If
@@ -236,22 +529,21 @@ Public Class Upload
                     'Create new Dataset, Get List of Projects, Add Dataset to Project 
                     rand = New Random
                     randDig = rand.Next(1, 10)
-                    uri = "http://strabospot.org/db/dataset"
-                    modTimeStamp = (DateTime.Now - startEpoch).TotalMilliseconds
+                    uri = "https://strabospot.org/db/dataset"
+                    modTimeStamp = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                     Dim datasetid As String = modTimeStamp.ToString + randDig
-                    today = Date.Today
+                    today = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                     Dim datasetName As String = dataset.AliasName
                     self = uri + "/" + datasetid
                     Dim datasetData As New StringBuilder()
 
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
-                    datasetData.Append("{" + Environment.NewLine + """id"" : """ + datasetid + """,")
-                    datasetData.Append(Environment.NewLine + """date"" : """ + today.ToString + """,")
-                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : """ + modTimeStamp.ToString)
-                    datasetData.Append("""," + Environment.NewLine + """description"" : {")
-                    datasetData.Append(Environment.NewLine + """name"" : """ + "" + datasetName + """")
-                    datasetData.Append(Environment.NewLine + "}" + Environment.NewLine + "}")
+                    datasetData.Append("{" + Environment.NewLine + """id"" : " + datasetid + ",")
+                    datasetData.Append(Environment.NewLine + """name"" : """ + "" + datasetName + """,")
+                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : " + modTimeStamp.ToString + ",")
+                    datasetData.Append(Environment.NewLine + """date"" : """ + today.ToString + """")
+                    datasetData.Append(Environment.NewLine + "}")
                     Dim strDatasetData As String = datasetData.ToString()
                     Debug.Print(strDatasetData)
                     postdatabytes = enc.GetBytes(strDatasetData)
@@ -277,7 +569,7 @@ Public Class Upload
 
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
+                        Debug.Print("Response from created dataset " + isCreated)
                         If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
                             MessageBox.Show("Error creating Strabo Project. Try your request again.")
                             TextBox1.Clear()
@@ -290,17 +582,9 @@ Public Class Upload
                         MessageBox.Show(WebException.Message)
                     End Try
 
-                    'Get the selected Project's ID number
-                    Dim selIndex As Integer
-                    Dim projectIDsList As System.Array
-                    projectIDsList = projectIDs.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)
-                    selIndex = Projects.SelectedIndex
-                    selprojectNum = projectIDsList(selIndex)
-                    selprojectNum = selprojectNum.Trim
-
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As New StringBuilder()
-                    uri = "http://www.strabospot.org/db/projectDatasets/" + selprojectNum
+                    uri = "https://www.strabospot.org/db/projectDatasets/" + prjid
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
                     addDataset.Append("{" + Environment.NewLine + """id"" : """ + datasetid + """" + Environment.NewLine + "}")
@@ -328,6 +612,7 @@ Public Class Upload
 
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
+                        Debug.Print("Response from adding created dataset to the created project " + isCreated)
 
                         If isCreated.Equals("""Error"": ""Dataset """ + datasetid + """ not found.""") Then
                             MessageBox.Show("Error creating Strabo Project.")
@@ -366,18 +651,138 @@ Public Class Upload
                         MessageBox.Show("Error: Json File already exists.")
                         Continue For
                     End If
+                    'PARSE THE NEWLY CREATED ESRIJSON FILE THEN EDIT THE ORIGINAL 
+                    'Set up GeoJson StringBuilder 
+                    sr = New StreamReader(jsonPath)
+                    wholeFile = File.ReadAllLines(jsonPath)
+                    Debug.Print(jsonPath)
+                    For Each i In wholeFile
+                        If i.ToString.Contains("null") Or i.ToString.Contains("FID") Then
+                            Continue For
+                        Else
+                            esriFile = esriFile + i.ToString + Environment.NewLine
+                            numLines += 1
+                        End If
+                    Next
+                    wholeFile = esriFile.Split(phrase, StringSplitOptions.None)
+                    numAttributes = wholeFile.Length - 1
+                    attributes = New List(Of String)(wholeFile)
+                    attributes.RemoveAt(0)
+                    attr = attributes.ToArray()
+                    For Each a In attr
+                        a = a.Remove(0, 2)
+                        a = a.Replace("},", "")
+                        For Each c In delChars
+                            a = a.Replace(c, "")
+                        Next
+                        Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
+                        For Each value In splitLines
+                            value = value.Trim
+                            If value.Equals(String.Empty) Then
+                                Continue For
+                            Else
+                                parts = value.Split(New Char() {":"}, 2)
+                                'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
+                                If parts(0).Contains("SpotID") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                        'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
+                                    Else
+                                        sb.Append("----------------------------------")
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                        spots += 1
+                                    End If
+                                ElseIf parts(0).Contains("x") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                    Else
+                                        sb.Append("""geometry"": " + Environment.NewLine)
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    End If
+                                ElseIf parts(0).Contains("y") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                    Else
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    End If
+                                Else
+                                    sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                End If
+                            End If
+                        Next
+                    Next
+                    Dim strSeparator() As String = {"----------------------------------"}
+                    attr = sb.ToString.Split(strSeparator, StringSplitOptions.None)
+                    Dim origJsonFile As String = ""
 
-                    ''Read the Json file to String
-                    'sr = New StreamReader(jsonPath)
-                    'Dim attributes As String
-                    'Dim jsonSB As New StringBuilder()
-                    'Dim geoType As String
-                    ''/////////////////////////////////////////////NEEDS WORK!////////////////////////////////////////////
-                    ''///////////////////////////////////////////////////////////////////////////////////////////////////
-                    'If (sr.ReadLine()).Equals("""attributes"" : {") Then
-                    '    attributes = sr.ReadToEnd()
-                    '    Debug.Print(attributes)
-                    'End If
+                    If dataset.ShapeType.ToString.Equals("esriGeometryPoint") Then
+                        origJsonFile = fileName + "\origPts.json"
+                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolyline") Then
+                        origJsonFile = fileName + "\origLines.json"
+                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolygon") Then
+                        origJsonFile = fileName + "\origPolygons.json"
+                    End If
+                    Dim sr2 = New StreamReader(origJsonFile)
+                    Dim file2 As String
+                    file2 = File.ReadAllText(origJsonFile)
+                    Dim wholeJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(file2)
+                    Dim strLine As String
+                    Dim spotList As Object
+                    Dim spotID As Long
+                    Dim esriJson As String
+                    For Each spot In attr
+                        esriJson += spot
+                        Debug.Print(spot)
+                    Next
+                    For Each item In wholeJson("features")
+                        spotList = item("properties")
+                        For Each line In spotList
+                            strLine = line.ToString().Trim("[", "]").Trim
+                            parts = strLine.Split(New Char() {","}, 2)
+                            If parts(0).Equals("id") Then
+                                spotID = (parts(1))
+                            End If
+                        Next
+                        strLine = CompareSpotIDs(spotID, esriJson)
+                        If Not strLine.Equals(Nothing) Then
+                            wholeJson = CompareESRItoOrig(spotID, wholeJson, strLine)
+                        End If
+                    Next
+                    Dim editedJson As String = JsonConvert.SerializeObject(wholeJson)
+                    Debug.Print(editedJson)
+                    'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
+                    uri = "https://www.strabospot.org/db/datasetspots/" + datasetid
+                    s = HttpWebRequest.Create(uri)
+                    enc = New System.Text.UTF8Encoding()
+                    postdatabytes = enc.GetBytes(editedJson)
+                    s.Method = "POST"
+                    s.ContentType = "application/json"
+                    s.ContentLength = postdatabytes.Length
+
+                    authorization = emailaddress + ":" + password
+                    binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                    authorization = Convert.ToBase64String(binaryauthorization)
+                    authorization = "Basic " + authorization
+                    s.Headers.Add("Authorization", authorization)
+
+                    Using stream = s.GetRequestStream()
+                        stream.Write(postdatabytes, 0, postdatabytes.Length)
+                    End Using
+
+                    Try
+                        Dim result = s.GetResponse()
+                        datastream = result.GetResponseStream()
+                        reader = New StreamReader(datastream)
+                        responseFromServer = reader.ReadToEnd()
+
+                        Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                        isCreated = p.ToString
+
+                        Debug.Print("Response to creating Strabo dataset: " + isCreated)
+
+                    Catch WebException As Exception
+                        MessageBox.Show(WebException.Message)
+                    End Try
 
                     'If the dataset is Native Arc add to list of shapefiles
                 ElseIf (typeResponse.Equals(False)) Then
@@ -441,14 +846,13 @@ Public Class Upload
                 'Use Jason's code to upload the zipped shapefile of several feature classes to StraboSpot
                 Dim response As Byte()
                 Dim arcid As String
-
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("http://www.strabospot.org/arcupload.php", zipShp)
+                    response = wc.UploadFile("https://www.strabospot.org/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "http://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "https://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
                 End Using
             End If
 
@@ -512,16 +916,15 @@ Public Class Upload
                 End If
 
                 If typeResponse.Equals(True) Then
-
                     'Create a new dataset in an existing project:
                     'Create new Dataset, Get List of Projects, Add Dataset to Project 
                     Dim rand As Random = New Random
                     Dim randDig As String = rand.Next(1, 10)
-                    Dim uri As String = "http://strabospot.org/db/dataset"
+                    Dim uri As String = "https://strabospot.org/db/dataset"
                     Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
-                    Dim modTimeStamp As Int64 = (DateTime.Now - startEpoch).TotalMilliseconds
+                    Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                     Dim id As String = modTimeStamp.ToString + randDig
-                    Dim today As String = Date.Today
+                    Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                     Dim datasetName As String = dataset.AliasName
                     Dim self As String = uri + "/" + id
                     Dim datasetData As New StringBuilder()
@@ -585,7 +988,7 @@ Public Class Upload
 
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As New StringBuilder()
-                    uri = "http://www.strabospot.org/db/projectDatasets/" + selprojectNum
+                    uri = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
                     addDataset.Append("{" + Environment.NewLine + """id"" : """ + id + """" + Environment.NewLine + "}")
@@ -652,50 +1055,137 @@ Public Class Upload
                         Continue For
                     End If
 
-                    'Read the Json file to String
-                    Dim attributes As String()
-                    Dim jsonSB As New StringBuilder()
-                    Dim geoType As String
-                    Dim orgResponse As String()
+                    'PARSE THE NEWLY CREATED ESRIJSON FILE THEN FIND AND EDIT THE ORIGINAL JSON FILE
+                    'Set up GeoJson StringBuilder 
+                    sr = New StreamReader(jsonPath)
+                    wholeFile = File.ReadAllLines(jsonPath)
+                    For Each i In wholeFile
+                        If i.ToString.Contains("null") Or i.ToString.Contains("FID") Then
+                            Continue For
+                        Else
+                            esriFile = esriFile + i.ToString + Environment.NewLine
+                            numLines += 1
+                        End If
+                    Next
+                    wholeFile = esriFile.Split(phrase, StringSplitOptions.None)
+                    numAttributes = wholeFile.Length - 1
+                    'Debug.Print(numAttributes.ToString)
+                    attributes = New List(Of String)(wholeFile)
+                    attributes.RemoveAt(0)
+                    attr = attributes.ToArray()
+                    For Each a In attr
+                        a = a.Remove(0, 2)
+                        a = a.Replace("},", "")
+                        For Each c In delChars
+                            a = a.Replace(c, "")
+                        Next
+                        Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
+                        For Each value In splitLines
+                            value = value.Trim
+                            If value.Equals(String.Empty) Then
+                                Continue For
+                            Else
+                                parts = value.Split(New Char() {":"}, 2)
+                                'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
+                                If parts(0).Contains("SpotID") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                        'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
+                                    Else
+                                        sb.Append("----------------------------------")
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                        spots += 1
+                                    End If
+                                ElseIf parts(0).Contains("x") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                    Else
+                                        sb.Append("""geometry"": " + Environment.NewLine)
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    End If
+                                ElseIf parts(0).Contains("y") Then
+                                    If sb.ToString.Contains(parts(1)) Then
+                                        sb.Append("")
+                                    Else
+                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    End If
+                                Else
+                                    sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                End If
+                            End If
+                        Next
+                    Next
+                    Dim strSeparator() As String = {"----------------------------------"}
+                    attr = sb.ToString.Split(strSeparator, StringSplitOptions.None)
+                    'Get the original Json file to edit----------------------------------------------Think about if this is not there, getting the it in a stream from Strabo
+                    Dim origJsonFile As String = ""
+                    If dataset.ShapeType.ToString.Equals("esriGeometryPoint") Then
+                        origJsonFile = fileName + "\origPts.json"
+                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolyline") Then
+                        origJsonFile = fileName + "\origLines.json"
+                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolygon") Then
+                        origJsonFile = fileName + "\origPolygons.json"
+                    End If
+                    Dim sr2 = New StreamReader(origJsonFile)
+                    Dim file2 As String
+                    file2 = File.ReadAllText(origJsonFile)
+                    Dim wholeJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(file2)
+                    Dim strLine As String
+                    Dim spotList As Object
+                    Dim spotID As Long
+                    Dim esriJson As String
+                    For Each spot In attr
+                        esriJson += spot
+                    Next
+                    For Each item In wholeJson("features")
+                        spotList = item("properties")
+                        For Each line In spotList
+                            strLine = line.ToString().Trim("[", "]").Trim
+                            parts = strLine.Split(New Char() {","}, 2)
+                            If parts(0).Equals("id") Then
+                                spotID = (parts(1))
+                            End If
+                        Next
+                        strLine = CompareSpotIDs(spotID, esriJson)
+                        If Not strLine.Equals(Nothing) Then
+                            wholeJson = CompareESRItoOrig(spotID, wholeJson, strLine)
+                        End If
+                    Next
+                    Debug.Print("Edited Json String: " + wholeJson.ToString)
 
-                    ''Get the geometryType of the feature class to help locate the original Json response on 
-                    'Using strm As StreamReader = New StreamReader(jsonPath)
-                    '    If (strm.ReadLine()).Contains("geometryType") Then
-                    '        If (strm.ReadLine()).Contains("Point") Then
-                    '            geoType = "Pts"
-                    '        ElseIf (strm.ReadLine()).Contains("Polyline") Then
-                    '            geoType = "Lines"
-                    '        ElseIf (strm.ReadLine()).Contains("Polygon") Then
-                    '            geoType = "Polygons"
-                    '        End If
-                    '        'Find the original server response from Strabo (file created upon download) 
-                    '        For Each f As String In
-                    '            System.IO.Directory.GetFiles(fileName)
-                    '            If f.Contains("orig" + geoType) Then
-                    '                Using reader As StreamReader = New StreamReader(fileName + "\orig" + geoType)
-                    '                    orgResponse = (reader.ReadToEnd()).Split("properties")
-                    '                End Using
-                    '            End If
-                    '        Next
-                    '    End If
-                    'End Using
+                    'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
+                    uri = "https://www.strabospot.org/db/datasetspots/" + id
+                    s = HttpWebRequest.Create(uri)
+                    enc = New System.Text.UTF8Encoding()
+                    postdatabytes = enc.GetBytes(wholeJson.ToString)
+                    s.Method = "POST"
+                    s.ContentType = "application/json"
+                    s.ContentLength = postdatabytes.Length
 
-                    'Using sr As StreamReader = New StreamReader(jsonPath)
-                    '    If (sr.ReadLine()).Equals("""attributes"" : {") Then
-                    '        attributes = (sr.ReadToEnd()).Split("""attributes"" : {")
-                    '        For Each i In attributes
-                    '            Debug.Print(i)
-                    '            i.Split(Environment.NewLine)
-                    '            For Each line In i
-                    '                Debug.Print(line)
-                    '                line.Split(New Char() {":"}, 2)
+                    authorization = emailaddress + ":" + password
+                    binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                    authorization = Convert.ToBase64String(binaryauthorization)
+                    authorization = "Basic " + authorization
+                    s.Headers.Add("Authorization", authorization)
 
-                    '            Next
-                    '        Next
-                    '    End If
-                    'End Using
-                    '//////////////////////////////////////NEEDS WORK!!!!/////////////////////////////////////////////
-                    '////////////////////////////////////////////////////////////////////////////////////////////////
+                    Using stream = s.GetRequestStream()
+                        stream.Write(postdatabytes, 0, postdatabytes.Length)
+                    End Using
+
+                    Try
+                        Dim result = s.GetResponse()
+                        datastream = result.GetResponseStream()
+                        reader = New StreamReader(datastream)
+                        responseFromServer = reader.ReadToEnd()
+
+                        Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                        isCreated = p.ToString
+
+                        Debug.Print("Response to creating Strabo dataset: " + isCreated)
+
+                    Catch WebException As Exception
+                        MessageBox.Show(WebException.Message)
+                    End Try
 
                     'If the dataset is Native Arc add to list of shapefiles
                 ElseIf (typeResponse.Equals(False)) Then
@@ -762,11 +1252,11 @@ Public Class Upload
 
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("http://www.strabospot.org/arcupload.php", zipShp)
+                    response = wc.UploadFile("https://www.strabospot.org/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "http://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "https://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
                 End Using
             End If
         End If
@@ -863,7 +1353,7 @@ Public Class Upload
         End If
 
         'Get Project list first- "Get My Projects" from the Strabo API
-        s = HttpWebRequest.Create("http://www.strabospot.org/db/myProjects")
+        s = HttpWebRequest.Create("https://www.strabospot.org/db/myProjects")
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
         s.ContentType = "application/json"
@@ -906,7 +1396,7 @@ Public Class Upload
         emailaddress = Username.Text
         password = PasswordBox.Text
 
-        s = HttpWebRequest.Create("http://strabospot.org/userAuthenticate")
+        s = HttpWebRequest.Create("https://strabospot.org/userAuthenticate")
         enc = New System.Text.UTF8Encoding()
         postdata = "{""email"" : """ + emailaddress + """,""password"" : """ + password + """}"
         postdatabytes = enc.GetBytes(postdata)

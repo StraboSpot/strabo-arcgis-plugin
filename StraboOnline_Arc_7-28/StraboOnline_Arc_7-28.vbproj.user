@@ -19,4 +19,7 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
+  <PropertyGroup>
+    <ReferencePath>C:\Program Files (x86)\ArcGIS\DeveloperKit10.3\DotNet\</ReferencePath>
+  </PropertyGroup>
 </Project>

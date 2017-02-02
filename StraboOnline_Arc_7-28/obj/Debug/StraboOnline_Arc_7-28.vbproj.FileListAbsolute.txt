@@ -25,4 +25,7 @@ C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboO
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.dll
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.xml
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7-28.pdb
+C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\Newtonsoft.Json.dll
+C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\Newtonsoft.Json.pdb
+C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\Newtonsoft.Json.xml
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.esriAddIn
