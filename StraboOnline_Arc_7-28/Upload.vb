@@ -132,7 +132,6 @@ Public Class Upload
         Dim randDig As String = rand.Next(1, 10)
         Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
         Dim unixTime As Int64
-        Dim lineUsed As Integer
         Dim newValue As JToken
         Dim innerID As String = ""
         Dim aoID As Object
@@ -140,6 +139,8 @@ Public Class Upload
         Dim blockNum As Integer
         Dim keyExists As Boolean
         Dim value As String = ""
+        Dim esriGeo(2) As String
+        Dim geoPairs As Integer = 0
         'Begin to loop through the wholeJSON file to find the corresponding spot
         For Each spot In wholeJSON("features")
             thisSpot = spot("properties")
@@ -149,7 +150,35 @@ Public Class Upload
                 'Loop through ESRIblock for current spot info
                 For Each ln In splitESRI
                     If ln.Contains("""geometry"": ") Then Continue For
-                    lineUsed = 0
+                    'If the geometry is not a point (i.e. line or polygon) the value won't be split-- gather each pair of coords and compare to appropriate original coord
+                    If Not ln.Contains(" ") Then
+                        If ln.EndsWith(",") Then
+                            esriGeo(0) = ln.TrimEnd(",").Trim
+                        Else
+                            esriGeo(1) = ln.Trim
+                            Debug.Print(esriGeo(0) + esriGeo(1))
+                            Debug.Print(spotGeo(geoPairs)(0).ToString)
+                            If (esriGeo(0).Equals((spotGeo(geoPairs)(0)).ToString)) And (esriGeo(1).Equals(spotGeo(geoPairs)(1).ToString)) Then
+                                Debug.Print("X and Y coordinates match")
+                                geoPairs += 1
+                                Continue For
+                            ElseIf (Not esriGeo(0).Equals((spotGeo(geoPairs)(0)).ToString)) Then
+                                spotGeo(geoPairs)(0) = esriGeo(0)
+                                Debug.Print("Changed X " + spotGeo(geoPairs)(0) + "to " + esriGeo(0))
+                                If (Not esriGeo(1).Equals(spotGeo(geoPairs)(1).ToString)) Then
+                                    spotGeo(geoPairs)(1) = esriGeo(1)
+                                    Debug.Print("ALSO Changed Y " + spotGeo(geoPairs)(1) + "to " + esriGeo(1))
+                                End If
+                                changesCount += 1
+                            ElseIf (Not esriGeo(1).Equals(spotGeo(geoPairs)(1).ToString)) Then
+                                spotGeo(geoPairs)(1) = esriGeo(1)
+                                Debug.Print("Changed Y " + spotGeo(geoPairs)(1) + "to " + esriGeo(1))
+                                changesCount += 1
+                            End If
+                            geoPairs += 1
+                        End If
+                        Continue For
+                    End If
                     currentLine = ln.Split(New Char() {" "}, 2)
                     currentLine(0) = currentLine(0).Replace(vbLf, "")
                     currentLine(1) = currentLine(1).Replace(""" ", """")
@@ -424,7 +453,6 @@ Public Class Upload
             Dim randDig As String = rand.Next(1, 10)
             Dim uri As String = "https://strabospot.org/db/project"
             Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
-            Debug.Print(DateTime.Now)
             Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
             Dim prjid As String = modTimeStamp.ToString + randDig
             Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
@@ -437,9 +465,11 @@ Public Class Upload
 
             s = HttpWebRequest.Create(uri)
             enc = New System.Text.UTF8Encoding()
-            prjData.Append("{" + Environment.NewLine + """self"" : """ + self + """," + Environment.NewLine + """id"" : """ + prjid + """,")
-            prjData.Append(Environment.NewLine + """date"" : """ + today.ToString + """," + Environment.NewLine + """modified_timestamp"" : """ + modTimeStamp.ToString)
-            prjData.Append("""," + Environment.NewLine + """description"" : {" + Environment.NewLine + """project_name"" : """ + "" + prjName + """")
+            prjData.Append("{" + Environment.NewLine + """self"" : """ + self + """," + Environment.NewLine + """id"" : ")
+            prjData.Append(CType(prjid, Int64))
+            prjData.Append("," + Environment.NewLine + """date"" : """ + today.ToString + """," + Environment.NewLine + """modified_timestamp"" : ")
+            prjData.Append(modTimeStamp)
+            prjData.Append("," + Environment.NewLine + """description"" : {" + Environment.NewLine + """project_name"" : """ + "" + prjName + """")
             prjData.Append(Environment.NewLine + "}" + Environment.NewLine + "}")
             Dim strPrjData As String = prjData.ToString()
             Debug.Print(strPrjData)
@@ -466,14 +496,14 @@ Public Class Upload
 
                 Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                 isCreated = p.ToString
-                Debug.Print("Response from created project " + isCreated)
-                If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
-                    MessageBox.Show("Error creating Strabo Project. Try your request again.")
-                    TextBox1.Clear()
+                MessageBox.Show(isCreated)
+                'If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
+                '    MessageBox.Show("Error creating Strabo Project. Try your request again.")
+                '    TextBox1.Clear()
 
-                Else
-                    MessageBox.Show("Strabo Project " + TextBox1.Text + " Successfully Created!")
-                End If
+                'Else
+                '    MessageBox.Show("Strabo Project " + TextBox1.Text + " Successfully Created!")
+                'End If
 
             Catch WebException As Exception
                 MessageBox.Show(WebException.Message)
@@ -539,10 +569,12 @@ Public Class Upload
 
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
-                    datasetData.Append("{" + Environment.NewLine + """id"" : " + datasetid + ",")
-                    datasetData.Append(Environment.NewLine + """name"" : """ + "" + datasetName + """,")
-                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : " + modTimeStamp.ToString + ",")
-                    datasetData.Append(Environment.NewLine + """date"" : """ + today.ToString + """")
+                    datasetData.Append("{" + Environment.NewLine + """id"" : ")
+                    datasetData.Append(CType(datasetid, Int64))
+                    datasetData.Append("," + Environment.NewLine + """name"" : """ + "" + datasetName + """,")
+                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : ")
+                    datasetData.Append(modTimeStamp)
+                    datasetData.Append("," + Environment.NewLine + """date"" : """ + today.ToString + """")
                     datasetData.Append(Environment.NewLine + "}")
                     Dim strDatasetData As String = datasetData.ToString()
                     Debug.Print(strDatasetData)
@@ -584,10 +616,13 @@ Public Class Upload
 
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As New StringBuilder()
-                    uri = "https://www.strabospot.org/db/projectDatasets/" + prjid
+                    uri = "https://strabospot.org/db/projectDatasets/" + prjid
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
-                    addDataset.Append("{" + Environment.NewLine + """id"" : """ + datasetid + """" + Environment.NewLine + "}")
+                    addDataset.Append("{" + Environment.NewLine + """id"" : ")
+                    addDataset.Append(datasetid)
+                    addDataset.Append(Environment.NewLine + "}")
+                    Debug.Print(addDataset.ToString())
                     Dim strAddDataset As String = addDataset.ToString()
                     postdatabytes = enc.GetBytes(strAddDataset)
                     s.Method = "POST"
@@ -612,7 +647,6 @@ Public Class Upload
 
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-                        Debug.Print("Response from adding created dataset to the created project " + isCreated)
 
                         If isCreated.Equals("""Error"": ""Dataset """ + datasetid + """ not found.""") Then
                             MessageBox.Show("Error creating Strabo Project.")
@@ -639,7 +673,6 @@ Public Class Upload
 
                         Dim sev As Object = Nothing
                         Try
-
                             gp.Execute(featToJson, Nothing)
                             Console.WriteLine(gp.GetMessages(sev))
 
@@ -669,6 +702,7 @@ Public Class Upload
                     attributes = New List(Of String)(wholeFile)
                     attributes.RemoveAt(0)
                     attr = attributes.ToArray()
+                    Dim geoCoords As String = String.Empty
                     For Each a In attr
                         a = a.Remove(0, 2)
                         a = a.Replace("},", "")
@@ -678,19 +712,33 @@ Public Class Upload
                         Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
                         For Each value In splitLines
                             value = value.Trim
-                            If value.Equals(String.Empty) Then
+                            If value.Equals(String.Empty) Or value.Equals(",") Or value.Equals("""paths""" + " :") Or value.Equals("""rings""" + " :") Then
                                 Continue For
+                                'If the value doesn't contain a colon it is likely a geometry coordinate from a line or polygon
+                            ElseIf Not value.Contains(":") Then
+                                geoCoords += value + Environment.NewLine
                             Else
                                 parts = value.Split(New Char() {":"}, 2)
                                 'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
                                 If parts(0).Contains("SpotID") Then
                                     If sb.ToString.Contains(parts(1)) Then
                                         sb.Append("")
-                                        'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
-                                    Else
-                                        sb.Append("----------------------------------")
+                                        geoCoords = String.Empty
+                                    ElseIf s.Equals(attr(0).ToString) Then    'Check if this is the first spot in the sequence-- if so keep adding 
                                         sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                        spots += 1
+                                    Else    'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
+                                        If sb.ToString.Contains(geoCoords) Then
+                                            sb.Append("----------------------------------")
+                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                            spots += 1
+                                        Else
+                                            sb.Append("""geometry"": " + Environment.NewLine)
+                                            sb.Append(geoCoords)
+                                            geoCoords = String.Empty
+                                            sb.Append("----------------------------------")
+                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                            spots += 1
+                                        End If
                                     End If
                                 ElseIf parts(0).Contains("x") Then
                                     If sb.ToString.Contains(parts(1)) Then
@@ -934,12 +982,13 @@ Public Class Upload
 
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
-                    datasetData.Append("{" + Environment.NewLine + """id"" : """ + id + """,")
-                    datasetData.Append(Environment.NewLine + """date"" : """ + today.ToString + """,")
-                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : """ + modTimeStamp.ToString)
-                    datasetData.Append("""," + Environment.NewLine + """description"" : {")
-                    datasetData.Append(Environment.NewLine + """name"" : """ + "" + datasetName + """")
-                    datasetData.Append(Environment.NewLine + "}" + Environment.NewLine + "}")
+                    datasetData.Append("{" + Environment.NewLine + """id"" : ")
+                    datasetData.Append(CType(id, Int64))
+                    datasetData.Append("," + Environment.NewLine + """name"" : """ + "" + datasetName + """,")
+                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : ")
+                    datasetData.Append(modTimeStamp)
+                    datasetData.Append("," + Environment.NewLine + """date"" : """ + today.ToString + """")
+                    datasetData.Append(Environment.NewLine + "}")
                     Dim strDatasetData As String = datasetData.ToString()
                     Debug.Print(strDatasetData)
                     postdatabytes = enc.GetBytes(strDatasetData)
@@ -1082,7 +1131,7 @@ Public Class Upload
                         Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
                         For Each value In splitLines
                             value = value.Trim
-                            If value.Equals(String.Empty) Then
+                            If value.Equals(String.Empty) Or value.Equals(",") Or value.Equals("""paths""" + " :") Or value.Equals("""rings""" + " :") Then
                                 Continue For
                             Else
                                 parts = value.Split(New Char() {":"}, 2)

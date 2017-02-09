@@ -453,7 +453,7 @@ Public Class Download
                     reader = New StreamReader(datastream)
                     responseFromServer = reader.ReadToEnd()
 
-                    'Debug.Print(responseFromServer)
+                    Debug.Print(responseFromServer)
 
                     f = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
 
