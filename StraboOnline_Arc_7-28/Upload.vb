@@ -720,6 +720,8 @@ Public Class Upload
                             Else
                                 parts = value.Split(New Char() {":"}, 2)
                                 'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
+                                '----But... What if the coordinates changed between features but share the same spot? Need to add in a comparison or confirmation 
+                                'for the user to either pick the geometry they want for a spot or compare early to the origJson and take the different one----
                                 If parts(0).Contains("SpotID") Then
                                     If sb.ToString.Contains(parts(1)) Then
                                         sb.Append("")
