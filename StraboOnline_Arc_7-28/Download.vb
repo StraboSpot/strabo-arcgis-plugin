@@ -16,7 +16,8 @@ Imports ESRI.ArcGIS.ConversionTools
 Imports ESRI.ArcGIS.Geoprocessor
 Imports ESRI.ArcGIS.Carto
 Imports ESRI.ArcGIS.ArcMapUI
-
+Imports ESRI.ArcGIS.ADF
+Imports ESRI.ArcGIS.ADF.Connection.Local
 Public Class Download
 
     'Declare variables shared by the subs of the Class 
@@ -363,8 +364,6 @@ Public Class Download
         Dim Name As IName = CType(wsName, IName)
         Dim ws As IWorkspace = CType(Name.Open(), IWorkspace)
         Return New KeyValuePair(Of IWorkspace, String)(ws, fileGDBName)
-
-
     End Function
 
     Private Sub straboToGIS_Click(sender As Object, e As EventArgs) Handles straboToGIS.Click
@@ -383,9 +382,10 @@ Public Class Download
         Dim esriJson As New StringBuilder()
         Dim coord As Object
         Dim thisSpot As Object
-        Dim thisVal As String
         Dim geoproc As ESRI.ArcGIS.Geoprocessor.Geoprocessor = New ESRI.ArcGIS.Geoprocessor.Geoprocessor()
         Dim featToJson As ESRI.ArcGIS.ConversionTools.JSONToFeatures = New ESRI.ArcGIS.ConversionTools.JSONToFeatures()
+        Dim makeTable As ESRI.ArcGIS.DataManagementTools.CreateTable = New ESRI.ArcGIS.DataManagementTools.CreateTable()
+        Dim addFields As ESRI.ArcGIS.DataManagementTools.AddField = New ESRI.ArcGIS.DataManagementTools.AddField()
         geoproc.OverwriteOutput = True
         Dim JSONPath As String
         Dim origJsonPath As String
@@ -406,7 +406,15 @@ Public Class Download
         Dim Client As New WebClient
         Dim imgFile As String
         Dim imgID As String
+        Dim spotIDs As String
+        Dim sev As Object = Nothing
         Client.Credentials = New NetworkCredential(emailaddress, password)
+        selprojectNum = selprojectNum.Trim
+
+        Dim fileName As String = PathName.Text + "\" + pair.Value
+        If (Not System.IO.Directory.Exists(fileName)) Then
+            System.IO.Directory.CreateDirectory(fileName)
+        End If
 
         'Set the arcpy workspace environment- important because features will need to be saved here
         Dim envPath As String
@@ -424,11 +432,6 @@ Public Class Download
         geometries.Add("point")
         geometries.Add("line")
         geometries.Add("polygon")
-
-        Dim fileName As String = PathName.Text + "\" + pair.Value
-        If (Not System.IO.Directory.Exists(fileName)) Then
-            System.IO.Directory.CreateDirectory(fileName)
-        End If
 
         For Each geometry In geometries
             '//////////////////////////////////////////////////////POINTS BEGIN/////////////////////////////////////////
@@ -467,7 +470,6 @@ Public Class Download
                     esriJson.Append("{" + Environment.NewLine + """displayFieldName"" : " + """" + selDataset + """" + "," + Environment.NewLine)
                     esriJson.Append("""fieldAliases"" : {" + Environment.NewLine)
                     esriJson.Append("""FID"" : ""FID""," + Environment.NewLine)
-
 
                     For Each i In f
                         'Add each field to the Field Aliases array 
@@ -525,6 +527,13 @@ Public Class Download
                             esriJson.Append("""name"" : ""rock_unit_notes""," + Environment.NewLine)
                             esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
                             esriJson.Append("""alias"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+                        ElseIf i.ToString.Equals("description") Then
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : """ + i + """," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : """ + i + """," + Environment.NewLine)
                             esriJson.Append("""length"" : 1024" + Environment.NewLine)
                             esriJson.Append("}")
                         ElseIf i.ToString.Contains("notes") Then
@@ -592,6 +601,7 @@ Public Class Download
 
                             coord = spot("geometry")("coordinates")
                             spotID = thisSpot("id")
+                            spotIDs += spotID.ToString + ","
                             esriJson.Append("," + Environment.NewLine + """SpotID"" : " + """" + spotID.ToString + """")
 
                             'Get basic values 
@@ -893,8 +903,6 @@ Public Class Download
                     featToJson.in_json_file = JSONPath
                     featToJson.out_features = System.IO.Path.Combine(envPath, "points")
 
-                    Dim sev As Object = Nothing
-
                     Try
                         geoproc.Execute(featToJson, Nothing)
                         Console.WriteLine(geoproc.GetMessages(sev))
@@ -1072,6 +1080,7 @@ Public Class Download
 
                             coord = spot("geometry")("coordinates")
                             spotID = thisSpot("id")
+                            spotIDs += spotID.ToString + ","
                             esriJson.Append("," + Environment.NewLine + """SpotID"" : " + """" + spotID.ToString + """")
                             'Check for any root values (single line- not nested)
                             'Get basic values 
@@ -1388,8 +1397,6 @@ Public Class Download
                     featToJson.in_json_file = JSONPath
                     featToJson.out_features = System.IO.Path.Combine(envPath, "lines")
 
-                    Dim sev As Object = Nothing
-
                     Try
                         geoproc.Execute(featToJson, Nothing)
                         Console.WriteLine(geoproc.GetMessages(sev))
@@ -1461,7 +1468,7 @@ Public Class Download
                         Else
                             esriJson.Append("""" + i + """ : """ + i + """," + Environment.NewLine)
                         End If
-                'Debug.Print(i)
+                        'Debug.Print(i)
                     Next
                     esriJson.Append("""SpotID"" : ""SpotID""," + Environment.NewLine)
                     esriJson.Append("""FeatID"" : ""FeatID""," + Environment.NewLine)
@@ -1570,6 +1577,7 @@ Public Class Download
 
                             coord = spot("geometry")("coordinates")
                             spotID = thisSpot("id")
+                            spotIDs += spotID.ToString + ","
                             esriJson.Append("," + Environment.NewLine + """SpotID"" : " + """" + spotID.ToString + """")
                             'Check for any root values (single line- not nested)
                             'Get basic values 
@@ -1907,8 +1915,6 @@ Public Class Download
                     featToJson.in_json_file = JSONPath
                     featToJson.out_features = System.IO.Path.Combine(envPath, "polygons")
 
-                    Dim sev As Object = Nothing
-
                     Try
                         geoproc.Execute(featToJson, Nothing)
                         Console.WriteLine(geoproc.GetMessages(sev))
@@ -1929,6 +1935,147 @@ Public Class Download
             '////////////////////////////////////////////////////////////////////////////////////////////////////////
         Next
 
+        '///////////////////////////////////////////IMPORT TAGS FROM PROJECT JSON/////////////////////////////////////
+
+        'Need to get info from the Strabo Project Json which will be put into a separate table in the FGDB
+        Dim prj As Object
+        s = HttpWebRequest.Create("https://strabospot.org/db/project/" + selprojectNum)
+        enc = New System.Text.UTF8Encoding()
+        s.Method = "GET"
+        s.ContentType = "application/json"
+
+        authorization = emailaddress + ":" + password
+        binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+        authorization = Convert.ToBase64String(binaryauthorization)
+        authorization = "Basic " + authorization
+        s.Headers.Add("Authorization", authorization)
+
+        Dim tagFields As String = "SpotID,"
+        Dim tagSpotIDs As String = ""
+        Try
+            Dim result = s.GetResponse()
+            datastream = result.GetResponseStream()
+            reader = New StreamReader(datastream)
+            responseFromServer = reader.ReadToEnd()
+
+            Debug.Print(responseFromServer)
+
+            JSONPath = fileName + "\projectJson.json"
+            System.IO.File.WriteAllText(JSONPath, responseFromServer)
+
+            prj = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+
+        Catch WebException As Exception
+            MessageBox.Show(WebException.Message)
+        End Try
+
+        If prj IsNot Nothing Then
+            'Iterate the tags json to check for the tags that have SpotIDs that were found in the dataset
+            'This is because tags can be used in multiple datasets in a Strabo project, but we want just those data
+            'from the Strabo dataset, so the Tags table can then be joined to the points, lines, and polygons feature classes
+            If prj.ContainsKey("tags") Then
+                For Each tg In prj("tags")
+                    If tg.ContainsKey("spots") Then
+                        For Each spot In tg("spots")
+                            If spotIDs.Contains(spot.ToString) Then 'It belongs with the dataset(s)
+                                For Each line In tg
+                                    If Not line.ToString.Contains("System.Object") Then
+                                        strLine = line.ToString().Trim("[", "]").Trim
+                                        parts = strLine.Split(New Char() {","}, 2)
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "tagID"
+                                        End If
+                                        If Not tagFields.Contains(parts(0).ToString) Then
+                                            tagFields += parts(0) + ","
+                                        End If
+                                    End If
+                                Next
+                            End If
+                        Next
+                    End If
+                Next
+            End If
+            Debug.Print(tagFields)
+        End If
+
+        'Create the Tags Table in ArcMap 
+        makeTable.out_path = envPath
+        makeTable.out_name = "Tags"
+        Try
+            geoproc.Execute(makeTable, Nothing)
+            Console.WriteLine(geoproc.GetMessages(sev))
+        Catch ex As Exception
+            Console.WriteLine(geoproc.GetMessages(sev))
+        End Try
+
+        'Add the fields to the table
+        Dim tagFieldsSplit As String() = tagFields.Split(New Char() {","}, StringSplitOptions.RemoveEmptyEntries)
+        If geoproc.Exists(envPath + "/Tags", dt) Then
+            addFields.in_table = "Tags"
+            For Each field In tagFieldsSplit
+                Debug.Print(field)
+                addFields.field_name = field
+                addFields.field_type = "TEXT"
+                If field.Equals("description") Or field.Equals("notes") Then
+                    addFields.field_length = 1024
+                Else
+                    addFields.field_length = 160
+                End If
+                Try
+                    geoproc.Execute(addFields, Nothing)
+                    Console.WriteLine(geoproc.GetMessages(sev))
+                Catch ex As Exception
+                    Console.WriteLine(geoproc.GetMessages(sev))
+                End Try
+            Next
+        End If
+        'Add tag data to the TagsTable
+        Dim workspaceFactory As IWorkspaceFactory = New ESRI.ArcGIS.DataSourcesGDB.FileGDBWorkspaceFactory
+        Dim featWorkspace As IFeatureWorkspace = workspaceFactory.OpenFromFile(envPath, 0)
+        Dim tagTable As ITable = featWorkspace.OpenTable("Tags")
+        'Dim rowSubTypes As IRowSubtypes
+        Dim fieldIndex As Integer
+        'Dim row As IRow
+        Dim iCur As ICursor = tagTable.Insert(True)
+        Dim rowBuf As IRowBuffer
+        If prj.ContainsKey("tags") Then
+            For Each tg In prj("tags")
+                If tg.ContainsKey("spots") Then
+                    For Each spot In tg("spots")
+                        If spotIDs.Contains(spot.ToString) Then 'Insert a new row for each SpotID
+                            'row = tagTable.CreateRow()
+                            'rowSubTypes = CType(row, IRowSubtypes)
+                            'rowSubTypes.InitDefaultValues()
+                            rowBuf = tagTable.CreateRowBuffer()
+                            fieldIndex = tagTable.FindField("SpotID")
+                            rowBuf.Value(fieldIndex) = spot.ToString
+                            For Each line In tg
+                                If Not line.ToString.Contains("System.Object") Then
+                                    strLine = line.ToString().Trim("[", "]").Trim
+                                    parts = strLine.Split(New Char() {","}, 2)
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "tagID"
+                                    End If
+                                    fieldIndex = tagTable.FindField(parts(0))
+                                    rowBuf.Value(fieldIndex) = parts(1)
+                                    Debug.Print(parts(0) + " " + parts(1))
+                                End If
+                            Next
+                            iCur.InsertRow(rowBuf)
+                        End If
+                    Next
+                End If
+            Next
+        End If
+        Try
+            iCur.Flush()
+        Catch ex As Exception
+            Console.WriteLine(ex.Message)
+        Finally
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur)
+            System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf)
+        End Try
+      
         'Activate any existing hyperlinks for each layer with "self" field and change required fields
         dt = "self"
         If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
