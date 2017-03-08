@@ -22,7 +22,6 @@ Partial Class Download
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Download))
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Username = New System.Windows.Forms.TextBox()
         Me.PasswordBox = New System.Windows.Forms.TextBox()
@@ -35,7 +34,6 @@ Partial Class Download
         Me.straboToGIS = New System.Windows.Forms.Button()
         Me.Label4 = New System.Windows.Forms.Label()
         Me.Label3 = New System.Windows.Forms.Label()
-        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
@@ -49,7 +47,7 @@ Partial Class Download
         Me.SaveFileDialog1 = New System.Windows.Forms.SaveFileDialog()
         Me.FinalInstructions = New System.Windows.Forms.Label()
         Me.Label5 = New System.Windows.Forms.Label()
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.SuspendLayout()
         '
         'Label1
@@ -185,16 +183,6 @@ Partial Class Download
         Me.Label3.TabIndex = 22
         Me.Label3.Text = "Password"
         '
-        'PictureBox1
-        '
-        Me.PictureBox1.Image = CType(resources.GetObject("PictureBox1.Image"), System.Drawing.Image)
-        Me.PictureBox1.Location = New System.Drawing.Point(0, 1)
-        Me.PictureBox1.Name = "PictureBox1"
-        Me.PictureBox1.Size = New System.Drawing.Size(152, 109)
-        Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
-        Me.PictureBox1.TabIndex = 23
-        Me.PictureBox1.TabStop = False
-        '
         'LinkLabel1
         '
         Me.LinkLabel1.AutoSize = True
@@ -320,6 +308,19 @@ Partial Class Download
         Me.Label5.Text = "Error Loading Spots"
         Me.Label5.Visible = False
         '
+        'RadioButton1
+        '
+        Me.RadioButton1.AutoSize = True
+        Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.RadioButton1.Location = New System.Drawing.Point(198, 312)
+        Me.RadioButton1.Name = "RadioButton1"
+        Me.RadioButton1.Size = New System.Drawing.Size(276, 29)
+        Me.RadioButton1.TabIndex = 38
+        Me.RadioButton1.TabStop = True
+        Me.RadioButton1.Text = "Check to Download Images"
+        Me.RadioButton1.UseVisualStyleBackColor = True
+        Me.RadioButton1.Visible = False
+        '
         'Download
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
@@ -327,6 +328,7 @@ Partial Class Download
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(640, 562)
+        Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.FinalInstructions)
         Me.Controls.Add(Me.browseDir)
@@ -338,7 +340,6 @@ Partial Class Download
         Me.Controls.Add(Me.Browse)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.LinkLabel1)
-        Me.Controls.Add(Me.PictureBox1)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.straboToGIS)
@@ -353,7 +354,6 @@ Partial Class Download
         Me.Controls.Add(Me.Label1)
         Me.Name = "Download"
         Me.Text = "Download"
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -370,7 +370,6 @@ Partial Class Download
     Friend WithEvents straboToGIS As System.Windows.Forms.Button
     Friend WithEvents Label4 As System.Windows.Forms.Label
     Friend WithEvents Label3 As System.Windows.Forms.Label
-    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents LinkLabel1 As System.Windows.Forms.LinkLabel
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents FolderBrowserDialog1 As System.Windows.Forms.FolderBrowserDialog
@@ -384,4 +383,5 @@ Partial Class Download
     Friend WithEvents SaveFileDialog1 As System.Windows.Forms.SaveFileDialog
     Friend WithEvents FinalInstructions As System.Windows.Forms.Label
     Friend WithEvents Label5 As System.Windows.Forms.Label
+    Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
 End Class

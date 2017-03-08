@@ -22,17 +22,13 @@ Partial Class Upload
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
-        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Upload))
         Me.Label1 = New System.Windows.Forms.Label()
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
-        Me.RadioButton2 = New System.Windows.Forms.RadioButton()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.Label2 = New System.Windows.Forms.Label()
         Me.TextBox1 = New System.Windows.Forms.TextBox()
         Me.Label3 = New System.Windows.Forms.Label()
         Me.Button2 = New System.Windows.Forms.Button()
-        Me.LinkLabel1 = New System.Windows.Forms.LinkLabel()
-        Me.PictureBox1 = New System.Windows.Forms.PictureBox()
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         Me.ListBox1 = New System.Windows.Forms.ListBox()
         Me.Label5 = New System.Windows.Forms.Label()
@@ -46,7 +42,7 @@ Partial Class Upload
         Me.getProjects = New System.Windows.Forms.Button()
         Me.LogIn = New System.Windows.Forms.Button()
         Me.back = New System.Windows.Forms.Button()
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.LinkLabel1 = New System.Windows.Forms.LinkLabel()
         Me.SuspendLayout()
         '
         'Label1
@@ -71,19 +67,6 @@ Partial Class Upload
         Me.RadioButton1.Text = "Create New Strabo Project"
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
-        '
-        'RadioButton2
-        '
-        Me.RadioButton2.AutoSize = True
-        Me.RadioButton2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton2.Location = New System.Drawing.Point(136, 301)
-        Me.RadioButton2.Name = "RadioButton2"
-        Me.RadioButton2.Size = New System.Drawing.Size(321, 29)
-        Me.RadioButton2.TabIndex = 3
-        Me.RadioButton2.TabStop = True
-        Me.RadioButton2.Text = "Overwrite Existing Strabo Project"
-        Me.RadioButton2.UseVisualStyleBackColor = True
-        Me.RadioButton2.Visible = False
         '
         'Button1
         '
@@ -137,27 +120,6 @@ Partial Class Upload
         Me.Button2.Text = "Upload"
         Me.Button2.UseVisualStyleBackColor = True
         Me.Button2.Visible = False
-        '
-        'LinkLabel1
-        '
-        Me.LinkLabel1.AutoSize = True
-        Me.LinkLabel1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.LinkLabel1.Location = New System.Drawing.Point(426, 10)
-        Me.LinkLabel1.Name = "LinkLabel1"
-        Me.LinkLabel1.Size = New System.Drawing.Size(153, 25)
-        Me.LinkLabel1.TabIndex = 25
-        Me.LinkLabel1.TabStop = True
-        Me.LinkLabel1.Text = "Visit StraboSpot"
-        '
-        'PictureBox1
-        '
-        Me.PictureBox1.Image = CType(resources.GetObject("PictureBox1.Image"), System.Drawing.Image)
-        Me.PictureBox1.Location = New System.Drawing.Point(-1, 1)
-        Me.PictureBox1.Name = "PictureBox1"
-        Me.PictureBox1.Size = New System.Drawing.Size(152, 109)
-        Me.PictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
-        Me.PictureBox1.TabIndex = 26
-        Me.PictureBox1.TabStop = False
         '
         'ListBox1
         '
@@ -289,17 +251,28 @@ Partial Class Upload
         Me.back.UseVisualStyleBackColor = True
         Me.back.Visible = False
         '
+        'LinkLabel1
+        '
+        Me.LinkLabel1.AutoSize = True
+        Me.LinkLabel1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.LinkLabel1.Location = New System.Drawing.Point(433, 7)
+        Me.LinkLabel1.Name = "LinkLabel1"
+        Me.LinkLabel1.Size = New System.Drawing.Size(153, 25)
+        Me.LinkLabel1.TabIndex = 43
+        Me.LinkLabel1.TabStop = True
+        Me.LinkLabel1.Text = "Visit StraboSpot"
+        '
         'Upload
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(592, 459)
+        Me.Controls.Add(Me.LinkLabel1)
         Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.RadioButton3)
         Me.Controls.Add(Me.back)
         Me.Controls.Add(Me.LogIn)
-        Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.Projects)
         Me.Controls.Add(Me.getProjects)
         Me.Controls.Add(Me.Label6)
@@ -309,8 +282,6 @@ Partial Class Upload
         Me.Controls.Add(Me.Username)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.ListBox1)
-        Me.Controls.Add(Me.PictureBox1)
-        Me.Controls.Add(Me.LinkLabel1)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.TextBox1)
@@ -319,21 +290,17 @@ Partial Class Upload
         Me.Controls.Add(Me.Label1)
         Me.Name = "Upload"
         Me.Text = "Upload"
-        CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
     End Sub
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
-    Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
     Friend WithEvents Button1 As System.Windows.Forms.Button
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents TextBox1 As System.Windows.Forms.TextBox
     Friend WithEvents Label3 As System.Windows.Forms.Label
     Friend WithEvents Button2 As System.Windows.Forms.Button
-    Friend WithEvents LinkLabel1 As System.Windows.Forms.LinkLabel
-    Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
     Friend WithEvents FolderBrowserDialog1 As System.Windows.Forms.FolderBrowserDialog
     Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
     Friend WithEvents Label5 As System.Windows.Forms.Label
@@ -347,4 +314,5 @@ Partial Class Upload
     Friend WithEvents getProjects As System.Windows.Forms.Button
     Friend WithEvents LogIn As System.Windows.Forms.Button
     Friend WithEvents back As System.Windows.Forms.Button
+    Friend WithEvents LinkLabel1 As System.Windows.Forms.LinkLabel
 End Class

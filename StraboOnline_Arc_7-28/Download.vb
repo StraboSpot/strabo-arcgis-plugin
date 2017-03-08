@@ -262,6 +262,7 @@ Public Class Download
         browseDir.Visible = True
         straboToGIS.Visible = True
         BackDatasets.Visible = True
+        RadioButton1.Visible = True
 
         'Hide the Strabo Choose Phase elements 
         Sel.Visible = False
@@ -610,13 +611,17 @@ Public Class Download
                                     'Debug.Print(line.ToString)
                                     strLine = line.ToString().Trim("[", "]").Trim
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If Not parts(0).Equals("self") Then
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     End If
                                 Else
                                     Continue For
@@ -640,18 +645,20 @@ Public Class Download
                                 Dim line As Object
                                 For Each line In rockData
                                     strLine = line.ToString().Trim("[", "]").Trim
-                                    Debug.Print(strLine)
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    Debug.Print(parts(0), parts(1))
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -660,15 +667,17 @@ Public Class Download
                                 Dim line As Object
                                 For Each line In traceData
                                     strLine = line.ToString().Trim("[", "]").Trim
-                                    Debug.Print(strLine)
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    Debug.Print(parts(0), parts(1))
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -696,12 +705,16 @@ Public Class Download
                                                 For Each l In block
                                                     strLine = l.ToString().Trim("[", "]").Trim
                                                     parts = strLine.Split(New Char() {","}, 2)
-                                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                                    parts(1) = Replace(parts(1), """", "'")
+                                                    If String.IsNullOrEmpty(parts(1)) Then
+                                                        parts(1) = ""
+                                                    Else
+                                                        parts(1) = Replace(parts(1), vbLf, "")
+                                                        parts(1) = Replace(parts(1), """", "'")
+                                                    End If
                                                     If parts(0).Equals("id") Then
                                                         parts(0) = "FeatID"
                                                     End If
-                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                                 aoData.Append("""x"" : " + coord(0).ToString + "," + Environment.NewLine)
@@ -711,8 +724,12 @@ Public Class Download
                                         ElseIf line.ToString.Contains("System.Object") Then
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             Dim elementList As String
                                             For Each i In orData(chunkNum)(parts(0))
                                                 elementList = elementList + i + ", "
@@ -726,12 +743,16 @@ Public Class Download
                                         Else
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             If parts(0).Equals("id") Then
                                                 parts(0) = "FeatID"
                                             End If
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                         End If
                                     Next
                                     If esriJson.ToString.EndsWith(Environment.NewLine) Then
@@ -760,12 +781,16 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""x"" : " + coord(0).ToString + "," + Environment.NewLine)
@@ -786,15 +811,19 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""x"" : " + coord(0).ToString + "," + Environment.NewLine)
@@ -815,18 +844,24 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             imgID = parts(1)
-                                            parts(0) = "FeatID"
-                                            Debug.Print(imgID)
+                                            'parts(0) = "FeatID"
+                                            'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             'Download the image to same file Json files are saved
-                                            imgFile = fileName + "\" + imgID + ".tiff"
-                                            Debug.Print(imgFile)
-                                            Client.DownloadFile(parts(1), imgFile)
+                                            If RadioButton1.Checked Then
+                                                imgFile = fileName + "\" + imgID + ".tiff"
+                                                'Debug.Print(imgFile)
+                                                Client.DownloadFile(parts(1), imgFile)
+                                            End If
                                         Else
                                             Continue For
                                         End If
@@ -850,15 +885,19 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""x"" : " + coord(0).ToString + "," + Environment.NewLine)
@@ -1088,13 +1127,17 @@ Public Class Download
                                 If Not line.ToString.Contains("System.Object") Then
                                     strLine = line.ToString().Trim("[", "]").Trim
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If Not parts(0).Equals("self") Then
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     End If
                                 Else
                                     Continue For
@@ -1118,15 +1161,19 @@ Public Class Download
                                 For Each line In rockData
                                     strLine = line.ToString().Trim("[", "]").Trim
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -1135,15 +1182,17 @@ Public Class Download
                                 Dim line As Object
                                 For Each line In traceData
                                     strLine = line.ToString().Trim("[", "]").Trim
-                                    Debug.Print(strLine)
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    Debug.Print(parts(0), parts(1))
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -1176,12 +1225,16 @@ Public Class Download
                                                 For Each l In block
                                                     strLine = l.ToString().Trim("[", "]").Trim
                                                     parts = strLine.Split(New Char() {","}, 2)
-                                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                                    parts(1) = Replace(parts(1), """", "'")
+                                                    If String.IsNullOrEmpty(parts(1)) Then
+                                                        parts(1) = ""
+                                                    Else
+                                                        parts(1) = Replace(parts(1), vbLf, "")
+                                                        parts(1) = Replace(parts(1), """", "'")
+                                                    End If
                                                     If parts(0).Equals("id") Then
                                                         parts(0) = "FeatID"
                                                     End If
-                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                                 aoData.Append("""paths"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1192,13 +1245,17 @@ Public Class Download
                                                 aoData.Remove(aoData.Length - 3, 3)
                                                 aoData.Append(Environment.NewLine + "]" + Environment.NewLine + "]" + Environment.NewLine _
                                                             + "}" + Environment.NewLine + "}," + Environment.NewLine)
-                                                Debug.Print(aoData.ToString)
+                                                'Debug.Print(aoData.ToString)
                                             Next
                                         ElseIf line.ToString.Contains("System.Object") Then
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             Dim elementList As String
                                             For Each i In orData(chunkNum)(parts(0))
                                                 elementList = elementList + i + ", "
@@ -1212,12 +1269,16 @@ Public Class Download
                                         Else
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             If parts(0).Equals("id") Then
                                                 parts(0) = "FeatID"
                                             End If
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                         End If
                                     Next
                                     If esriJson.ToString.EndsWith(Environment.NewLine) Then
@@ -1250,12 +1311,16 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""paths"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1280,15 +1345,19 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""paths"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1313,17 +1382,23 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             imgID = parts(1)
-                                            Debug.Print(imgID)
+                                            'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             'Download the image to same file Json files are saved
-                                            imgFile = fileName + "\" + imgID + ".tiff"
-                                            Debug.Print(imgFile)
-                                            Client.DownloadFile(parts(1), imgFile)
+                                            If RadioButton1.Checked Then
+                                                imgFile = fileName + "\" + imgID + ".tiff"
+                                                'Debug.Print(imgFile)
+                                                Client.DownloadFile(parts(1), imgFile)
+                                            End If
                                         Else
                                             Continue For
                                         End If
@@ -1352,15 +1427,19 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""paths"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1585,13 +1664,17 @@ Public Class Download
                                 If Not line.ToString.Contains("System.Object") Then
                                     strLine = line.ToString().Trim("[", "]").Trim
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If Not parts(0).Equals("self") Then
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     End If
                                 Else
                                     Continue For
@@ -1615,15 +1698,19 @@ Public Class Download
                                 For Each line In rockData
                                     strLine = line.ToString().Trim("[", "]").Trim
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -1632,15 +1719,19 @@ Public Class Download
                                 Dim line As Object
                                 For Each line In traceData
                                     strLine = line.ToString().Trim("[", "]").Trim
-                                    Debug.Print(strLine)
+                                    'Debug.Print(strLine)
                                     parts = strLine.Split(New Char() {","}, 2)
-                                    Debug.Print(parts(0), parts(1))
-                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                    parts(1) = Replace(parts(1), """", "'")
+                                    'Debug.Print(parts(0), parts(1))
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
                                     If parts(0).Equals("id") Then
                                         parts(0) = "FeatID"
                                     End If
-                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                    esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
                             End If
 
@@ -1678,12 +1769,16 @@ Public Class Download
                                                 For Each l In block
                                                     strLine = l.ToString().Trim("[", "]").Trim
                                                     parts = strLine.Split(New Char() {","}, 2)
-                                                    parts(1) = Replace(parts(1), vbLf, " ")
-                                                    parts(1) = Replace(parts(1), """", "'")
+                                                    If String.IsNullOrEmpty(parts(1)) Then
+                                                        parts(1) = ""
+                                                    Else
+                                                        parts(1) = Replace(parts(1), vbLf, "")
+                                                        parts(1) = Replace(parts(1), """", "'")
+                                                    End If
                                                     If parts(0).Equals("id") Then
                                                         parts(0) = "FeatID"
                                                     End If
-                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                                    aoData.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                                 Next
                                                 aoData.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                                 aoData.Append("""rings"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1701,8 +1796,12 @@ Public Class Download
                                         ElseIf line.ToString.Contains("System.Object") Then
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             Dim elementList As String
                                             For Each i In orData(chunkNum)(parts(0))
                                                 elementList = elementList + i + ", "
@@ -1716,12 +1815,16 @@ Public Class Download
                                         Else
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
-                                            parts(1) = Replace(parts(1), vbLf, " ")
-                                            parts(1) = Replace(parts(1), """", "'")
+                                            If String.IsNullOrEmpty(parts(1)) Then
+                                                parts(1) = ""
+                                            Else
+                                                parts(1) = Replace(parts(1), vbLf, "")
+                                                parts(1) = Replace(parts(1), """", "'")
+                                            End If
                                             If parts(0).Equals("id") Then
                                                 parts(0) = "FeatID"
                                             End If
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                         End If
                                     Next
                                     If esriJson.ToString.EndsWith(Environment.NewLine) Then
@@ -1757,12 +1860,16 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""rings"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1792,15 +1899,19 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             parts(0) = "FeatID"
                                         End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "_3d_structures_type"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""rings"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -1829,17 +1940,23 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("id") Then
                                             imgID = parts(1)
-                                            Debug.Print(imgID)
+                                            'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
-                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                            esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             'Download the image to same file Json files are saved
-                                            imgFile = fileName + "\" + imgID + ".tiff"
-                                            Debug.Print(imgFile)
-                                            Client.DownloadFile(parts(1), imgFile)
+                                            If RadioButton1.Checked Then
+                                                imgFile = fileName + "\" + imgID + ".tiff"
+                                                'Debug.Print(imgFile)
+                                                Client.DownloadFile(parts(1), imgFile)
+                                            End If
                                         Else
                                             Continue For
                                         End If
@@ -1872,12 +1989,16 @@ Public Class Download
                                     For Each line In chunk
                                         strLine = line.ToString().Trim("[", "]").Trim
                                         parts = strLine.Split(New Char() {","}, 2)
-                                        parts(1) = Replace(parts(1), vbLf, " ")
-                                        parts(1) = Replace(parts(1), """", "'")
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            parts(1) = ""
+                                        Else
+                                            parts(1) = Replace(parts(1), vbLf, "")
+                                            parts(1) = Replace(parts(1), """", "'")
+                                        End If
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
-                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1) + """")
+                                        esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
                                     esriJson.Append("""rings"": [" + Environment.NewLine + "[" + Environment.NewLine)
@@ -2010,10 +2131,10 @@ Public Class Download
 
         'Add the fields to the table
         Dim tagFieldsSplit As String() = tagFields.Split(New Char() {","}, StringSplitOptions.RemoveEmptyEntries)
-        If geoproc.Exists(envPath + "/Tags", dt) Then
+        If geoproc.Exists(envPath + "\Tags", dt) Then
             addFields.in_table = "Tags"
             For Each field In tagFieldsSplit
-                Debug.Print(field)
+                'Debug.Print(field)
                 addFields.field_name = field
                 addFields.field_type = "TEXT"
                 If field.Equals("description") Or field.Equals("notes") Then
@@ -2075,9 +2196,32 @@ Public Class Download
             System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur)
             System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf)
         End Try
-      
-        'Activate any existing hyperlinks for each layer with "self" field and change required fields
+
+        'Link Tag Table with geometry from each feature class 
+        Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
         dt = "self"
+        If (geoproc.Exists(envPath + "\points", dt)) Then
+            makeQTable.in_table = envPath + "\Tags"
+            makeQTable.in_table = envPath + "\points"
+            makeQTable.out_table = envPath + "\Tags_Points"
+            makeQTable.in_key_field_option = "NO_KEY_FIELD"
+            For Each field In tagFieldsSplit
+                makeQTable.in_field = field
+            Next
+            makeQTable.in_field = "points.geometrytype"
+            makeQTable.in_field = "points.Shape"
+            makeQTable.where_clause = "Tags.""SpotID"" = points.""SpotID"""
+
+            Try
+                geoproc.Execute(makeQTable, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+            Catch ex As Exception
+                Console.WriteLine(geoproc.GetMessages(sev))
+            End Try
+
+        End If
+
+        'Activate any existing hyperlinks for each layer with "self" field and change required fields
         If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
             'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
             Dim hotlinkField As String = "self"

@@ -401,13 +401,6 @@ Public Class Upload
         Next
     End Function
 
-    Private Sub linklabel1_Linkclicked(ByVal sender As Object, ByVal e As Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
-
-        Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("https://www.strabospot.org")
-
-    End Sub
-
     Private Sub TextBox1_TextChanged(sender As Object, e As EventArgs) Handles TextBox1.TextChanged
         'Stores the project name given to Strabo 
     End Sub
@@ -433,6 +426,7 @@ Public Class Upload
         Dim shpDatasets As ArrayList = New ArrayList()
         Dim shpFile As String = "C:\temp\StraboShps"
         Dim featToShp As ESRI.ArcGIS.ConversionTools.FeatureClassToShapefile = New ESRI.ArcGIS.ConversionTools.FeatureClassToShapefile()
+        Dim reProject As ESRI.ArcGIS.DataManagementTools.CopyFeatures = New ESRI.ArcGIS.DataManagementTools.CopyFeatures()
         gp.OverwriteOutput = True
         gp.AddOutputsToMap = False
         Dim splitFile() As String
@@ -489,21 +483,19 @@ Public Class Upload
             End Using
 
             Try
-                Dim result = s.GetResponse()
+                Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                Dim statusCode As String = result.StatusCode.ToString
                 datastream = result.GetResponseStream()
                 reader = New StreamReader(datastream)
                 responseFromServer = reader.ReadToEnd()
-
                 Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                 isCreated = p.ToString
-                MessageBox.Show(isCreated)
-                'If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
-                '    MessageBox.Show("Error creating Strabo Project. Try your request again.")
-                '    TextBox1.Clear()
-
-                'Else
-                '    MessageBox.Show("Strabo Project " + TextBox1.Text + " Successfully Created!")
-                'End If
+                If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                    MessageBox.Show("Strabo Project " + TextBox1.Text + " Successfully Created!")
+                Else
+                    MessageBox.Show("Error creating Strabo Project. Try your request again.")
+                    TextBox1.Clear()
+                End If
 
             Catch WebException As Exception
                 MessageBox.Show(WebException.Message)
@@ -594,20 +586,19 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-                        Debug.Print("Response from created dataset " + isCreated)
-                        If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
-                            MessageBox.Show("Error creating Strabo Project. Try your request again.")
-                            TextBox1.Clear()
-
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                            MessageBox.Show("Strabo Dataset " + TextBox1.Text + " Successfully Created!")
                         Else
-                            MessageBox.Show("Strabo dataset " + datasetName + " Successfully Created!")
+                            MessageBox.Show("Error creating Strabo Dataset. Try your request again.")
+                            TextBox1.Clear()
                         End If
 
                     Catch WebException As Exception
@@ -640,20 +631,19 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
-                        If isCreated.Equals("""Error"": ""Dataset """ + datasetid + """ not found.""") Then
-                            MessageBox.Show("Error creating Strabo Project.")
-                            TextBox1.Clear()
-
-                        Else
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
                             MessageBox.Show("Strabo dataset " + datasetName + " Successfully Added to " + Projects.SelectedItem)
+                        Else
+                            MessageBox.Show("""Error"": ""Dataset """ + datasetid + """ not found.""")
+                            TextBox1.Clear()
                         End If
 
                     Catch WebException As Exception
@@ -820,15 +810,20 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
-                        Debug.Print("Response to creating Strabo dataset: " + isCreated)
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                            MessageBox.Show(datasetName + " added to Database")
+                        Else
+                            MessageBox.Show("""Error"": " + datasetName + " not added")
+                            TextBox1.Clear()
+                        End If
 
                     Catch WebException As Exception
                         MessageBox.Show(WebException.Message)
@@ -860,6 +855,8 @@ Public Class Upload
                         ElseIf (Not (datasetSpatRef.Equals("GCS_WGS_1984"))) Then
                             shpDatasetName = ws + "\" + dataset.AliasName + "_Projected"
                         End If
+                        Debug.Print(shpDatasetName)
+                        Debug.Print(shpFile)
                         featToShp.Input_Features = shpDatasetName
                         'Store in a separate folder
                         featToShp.Output_Folder = shpFile
@@ -906,15 +903,6 @@ Public Class Upload
                 End Using
             End If
 
-        ElseIf RadioButton2.Checked Then        'Overwriting or Delete/Replace Dataset in existing StraboProject
-            'Get the user chosen project to Overwrite 
-            Dim selIndex As Integer
-            Dim projectIDsList As System.Array
-            projectIDsList = projectIDs.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)
-            selIndex = Projects.SelectedIndex
-            selprojectNum = projectIDsList(selIndex)
-            selprojectNum = selprojectNum.Trim
-
         ElseIf RadioButton3.Checked Then        'Use an existing Strabo Project to add new datasets 
             'This For Loop Creates a New Strabo dataset per selected dataset, adds to existing project, 
             'then Runs the Features to Json ArcToolbox tool, parses that file, and edits the original GeoJson response
@@ -944,24 +932,25 @@ Public Class Upload
                     System.IO.Directory.CreateDirectory(fileName)
                 End If
                 If Not (datasetSpatRef.Equals("GCS_WGS_1984")) Then
-                    If type.Contains("Shapefile") Then
+                    Debug.Print(type)
+
+                    If type.Contains("Shapefile") Then  'If it is a shapefile, reprojecting it will work with Project tool 
                         project.out_coor_system = wgs84iSR
                         project.in_dataset = ws + "\" + dataset.AliasName + ".shp"
                         project.out_dataset = ws + "\" + dataset.AliasName + "_Projected.shp"
-                    Else
-                        project.out_coor_system = wgs84iSR
-                        project.in_dataset = ws + "\" + dataset.AliasName
-                        project.out_dataset = ws + "\" + dataset.AliasName + "_Projected"
+                    Else    'Use Copy Features to reproject anything other than a Shapefile since it is likely the FeatureLayer might be part of a topology rule (project doesn't accept such datasets)
+                        reProject.in_features = ws + "\" + dataset.AliasName
+                        reProject.out_feature_class = ws + "\" + dataset.AliasName + "_Projected"
+                        gp.SetEnvironmentValue("outputCoordinateSystem", wgs84iSR)
                     End If
 
                     Dim sev As Object = Nothing
                     Try
-
                         gp.Execute(project, Nothing)
                         Console.WriteLine(gp.GetMessages(sev))
 
                     Catch ex As Exception
-                        Console.WriteLine(gp.GetMessages(sev))
+                        Console.WriteLine("Projection Exception: " + gp.GetMessages(sev))
                     End Try
                 End If
 
@@ -1009,20 +998,19 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
-                        If isCreated.Equals("""Error"": ""Invalid body JSON sent.""") Then
-                            MessageBox.Show("Error creating Strabo Project. Try your request again.")
-                            TextBox1.Clear()
-
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                            MessageBox.Show("Strabo Dataset " + datasetName + " Successfully Created!")
                         Else
-                            MessageBox.Show("Strabo dataset " + datasetName + " Successfully Created!")
+                            MessageBox.Show("Error creating Strabo Dataset. Try your request again.")
+                            TextBox1.Clear()
                         End If
 
                     Catch WebException As Exception
@@ -1040,6 +1028,7 @@ Public Class Upload
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As New StringBuilder()
                     uri = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
+                    Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
                     addDataset.Append("{" + Environment.NewLine + """id"" : """ + id + """" + Environment.NewLine + "}")
@@ -1060,20 +1049,19 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
-                        If isCreated.Equals("""Error"": ""Dataset """ + id + """ not found.""") Then
-                            MessageBox.Show("Error creating Strabo Project.")
-                            TextBox1.Clear()
-
-                        Else
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
                             MessageBox.Show("Strabo dataset " + datasetName + " Successfully Added to " + Projects.SelectedItem)
+                        Else
+                            MessageBox.Show("""Error"": ""Dataset """ + datasetName + """ not found.""")
+                            TextBox1.Clear()
                         End If
 
                     Catch WebException As Exception
@@ -1093,7 +1081,6 @@ Public Class Upload
 
                         Dim sev As Object = Nothing
                         Try
-
                             gp.Execute(featToJson, Nothing)
                             Console.WriteLine(gp.GetMessages(sev))
 
@@ -1124,6 +1111,7 @@ Public Class Upload
                     attributes = New List(Of String)(wholeFile)
                     attributes.RemoveAt(0)
                     attr = attributes.ToArray()
+                    Dim geoCoords As String = String.Empty
                     For Each a In attr
                         a = a.Remove(0, 2)
                         a = a.Replace("},", "")
@@ -1135,17 +1123,31 @@ Public Class Upload
                             value = value.Trim
                             If value.Equals(String.Empty) Or value.Equals(",") Or value.Equals("""paths""" + " :") Or value.Equals("""rings""" + " :") Then
                                 Continue For
+                                'If the value doesn't contain a colon it is likely a geometry coordinate from a line or polygon
+                            ElseIf Not value.Contains(":") Then
+                                geoCoords += value + Environment.NewLine
                             Else
                                 parts = value.Split(New Char() {":"}, 2)
                                 'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
                                 If parts(0).Contains("SpotID") Then
                                     If sb.ToString.Contains(parts(1)) Then
                                         sb.Append("")
-                                        'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
-                                    Else
-                                        sb.Append("----------------------------------")
+                                        geoCoords = String.Empty
+                                    ElseIf s.Equals(attr(0).ToString) Then    'Check if this is the first spot in the sequence-- if so keep adding 
                                         sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                        spots += 1
+                                    Else    'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
+                                        If sb.ToString.Contains(geoCoords) Then
+                                            sb.Append("----------------------------------")
+                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                            spots += 1
+                                        Else
+                                            sb.Append("""geometry"": " + Environment.NewLine)
+                                            sb.Append(geoCoords)
+                                            geoCoords = String.Empty
+                                            sb.Append("----------------------------------")
+                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                            spots += 1
+                                        End If
                                     End If
                                 ElseIf parts(0).Contains("x") Then
                                     If sb.ToString.Contains(parts(1)) Then
@@ -1202,13 +1204,15 @@ Public Class Upload
                             wholeJson = CompareESRItoOrig(spotID, wholeJson, strLine)
                         End If
                     Next
-                    Debug.Print("Edited Json String: " + wholeJson.ToString)
+                    Dim editedJson As String = JsonConvert.SerializeObject(wholeJson)
+                    Debug.Print("Edited Json: " + editedJson)
 
                     'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
                     uri = "https://www.strabospot.org/db/datasetspots/" + id
+                    Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
-                    postdatabytes = enc.GetBytes(wholeJson.ToString)
+                    postdatabytes = enc.GetBytes(editedJson)
                     s.Method = "POST"
                     s.ContentType = "application/json"
                     s.ContentLength = postdatabytes.Length
@@ -1224,15 +1228,20 @@ Public Class Upload
                     End Using
 
                     Try
-                        Dim result = s.GetResponse()
+                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                        Dim statusCode As String = result.StatusCode.ToString
+                        Debug.Print(statusCode)
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                         isCreated = p.ToString
-
-                        Debug.Print("Response to creating Strabo dataset: " + isCreated)
+                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                            MessageBox.Show(datasetName + "added to Database")
+                        Else
+                            MessageBox.Show("""Error"": " + datasetName + "not added")
+                            TextBox1.Clear()
+                        End If
 
                     Catch WebException As Exception
                         MessageBox.Show(WebException.Message)
@@ -1323,7 +1332,6 @@ Public Class Upload
         Projects.Visible = False
 
         RadioButton1.Visible = True
-        RadioButton2.Visible = True
         RadioButton3.Visible = True
         Label1.Visible = True
         Button1.Visible = True
@@ -1335,7 +1343,6 @@ Public Class Upload
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
         RadioButton1.Visible = False
-        RadioButton2.Visible = False
         RadioButton3.Visible = False
         Button1.Visible = False
         Button2.Visible = True
@@ -1349,20 +1356,12 @@ Public Class Upload
             Label5.Visible = True
             ListBox1.Visible = True
 
-        ElseIf RadioButton2.Checked Then
-            'Tools for Overwriting a Strabo Project are displayed
-            getProjects.Visible = True
-            ListBox1.Visible = True
-            Projects.Visible = True
-            Label5.Visible = True
-            'Something to ask whether to Delete/Replace whole dataset versus Find and Replace by Feature
-
         ElseIf RadioButton3.Checked Then
             Label6.Visible = True
             Label5.Visible = True
-            'getProjects.Visible = True
+            getProjects.Visible = True
             ListBox1.Visible = True
-            'Projects.Visible = True
+            Projects.Visible = True
         End If
 
         'Add the ArcMap Session Layers to the ListBox
@@ -1478,7 +1477,6 @@ Public Class Upload
 
                 'Make tools for choosing upload method visible 
                 RadioButton1.Visible = True
-                RadioButton2.Visible = True
                 RadioButton3.Visible = True
                 Label1.Visible = True
                 Button1.Visible = True
@@ -1498,7 +1496,6 @@ Public Class Upload
         If RadioButton1.Visible = True Then
             'Go back to the Log-In screen 
             RadioButton1.Visible = False
-            RadioButton2.Visible = False
             RadioButton3.Visible = False
             Label1.Visible = False
             Button1.Visible = False
@@ -1528,7 +1525,6 @@ Public Class Upload
             End If
 
             RadioButton1.Visible = True
-            RadioButton2.Visible = True
             RadioButton3.Visible = True
             Label1.Visible = True
             Button1.Visible = True
@@ -1548,12 +1544,6 @@ Public Class Upload
         End If
     End Sub
 
-    Private Sub RadioButton2_KeyDown(sender As Object, e As KeyEventArgs) Handles RadioButton2.KeyDown
-        If e.KeyCode.Equals(Keys.Enter) Then
-            Button1_Click(Me, EventArgs.Empty)
-        End If
-    End Sub
-
     Private Sub RadioButton3_KeyDown(sender As Object, e As KeyEventArgs) Handles RadioButton3.KeyDown
         If e.KeyCode.Equals(Keys.Enter) Then
             Button1_Click(Me, EventArgs.Empty)
@@ -1564,5 +1554,10 @@ Public Class Upload
         If e.KeyCode.Equals(Keys.Enter) Then
             Button2_Click(Me, EventArgs.Empty)
         End If
+    End Sub
+
+    Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
+        Me.LinkLabel1.LinkVisited = True
+        System.Diagnostics.Process.Start("https://www.strabospot.org")
     End Sub
 End Class
