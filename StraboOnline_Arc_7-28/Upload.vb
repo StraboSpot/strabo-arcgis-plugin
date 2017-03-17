@@ -415,9 +415,8 @@ Public Class Upload
         Dim datasetSpatRef As String
         Dim dataset As ESRI.ArcGIS.Geodatabase.IFeatureClass
         Dim featToJson As ESRI.ArcGIS.ConversionTools.FeaturesToJSON = New ESRI.ArcGIS.ConversionTools.FeaturesToJSON()
-        Dim project As ESRI.ArcGIS.DataManagementTools.Project = New ESRI.ArcGIS.DataManagementTools.Project()
         Dim spatRefFactory As ISpatialReferenceFactory3 = New SpatialReferenceEnvironmentClass()
-        Dim wgs84iSR As ISpatialReference = spatRefFactory.CreateSpatialReference(4326)
+        Dim wgs84iSR As ISpatialReference3 = spatRefFactory.CreateSpatialReference(4326)
         Dim dt As Object = ""
         Dim fileName As String
         Dim jsonPath As String
@@ -532,12 +531,13 @@ Public Class Upload
                 gp.SetEnvironmentValue("workspace", ws)
 
                 If Not (datasetSpatRef.Equals("GCS_WGS_1984")) Then
-                    project.out_coor_system = wgs84iSR
-                    project.in_dataset = ws + "\" + dataset.AliasName
-                    project.out_dataset = ws + "\" + dataset.AliasName + "_Projected"
+                    reProject.in_features = ws + "\" + dataset.AliasName
+                    reProject.out_feature_class = ws + "\" + dataset.AliasName + "_Projected"
+                    gp.AddOutputsToMap = False
+                    gp.SetEnvironmentValue("outputCoordinateSystem", "GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433],AUTHORITY['EPSG',4326]]")
                     Dim sev As Object = Nothing
                     Try
-                        gp.Execute(project, Nothing)
+                        gp.Execute(reProject, Nothing)
                         Console.WriteLine(gp.GetMessages(sev))
 
                     Catch ex As Exception
@@ -875,8 +875,9 @@ Public Class Upload
             Next
 
             'Once all Native Arc datasets are put in the Temp folder, zip it and give to StraboSpot
+            Dim zipShp As String
             If Not shpDatasets.Count.Equals(0) Then
-                Dim zipShp As String = shpFile + ".zip"
+                zipShp = shpFile + ".zip"
                 If System.IO.Directory.Exists(zipShp) Then
                     Directory.Delete(zipShp)
                 End If
@@ -889,17 +890,17 @@ Public Class Upload
                 Catch ex1 As Exception
                     Console.Error.WriteLine("exception: {0}", ex1.ToString)
                 End Try
-
+                Debug.Print(zipShp)
                 'Use Jason's code to upload the zipped shapefile of several feature classes to StraboSpot
                 Dim response As Byte()
                 Dim arcid As String
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("https://www.strabospot.org/arcupload.php", zipShp)
+                    response = wc.UploadFile("https://strabospot.org/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "https://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "https://strabospot.org/loadarcshapefile?arcid=" + arcid)
                 End Using
             End If
 
@@ -933,340 +934,334 @@ Public Class Upload
                 End If
                 If Not (datasetSpatRef.Equals("GCS_WGS_1984")) Then
                     Debug.Print(type)
-
-                    If type.Contains("Shapefile") Then  'If it is a shapefile, reprojecting it will work with Project tool 
-                        project.out_coor_system = wgs84iSR
-                        project.in_dataset = ws + "\" + dataset.AliasName + ".shp"
-                        project.out_dataset = ws + "\" + dataset.AliasName + "_Projected.shp"
-                    Else    'Use Copy Features to reproject anything other than a Shapefile since it is likely the FeatureLayer might be part of a topology rule (project doesn't accept such datasets)
-                        reProject.in_features = ws + "\" + dataset.AliasName
-                        reProject.out_feature_class = ws + "\" + dataset.AliasName + "_Projected"
-                        gp.SetEnvironmentValue("outputCoordinateSystem", wgs84iSR)
-                    End If
-
+                    'Use Copy Features Tool to change the projection of the dataset (should work for any dataset type)
+                    reProject.in_features = ws + "\" + dataset.AliasName
+                    reProject.out_feature_class = ws + "\" + dataset.AliasName + "_Projected"
+                    gp.AddOutputsToMap = False
+                    gp.SetEnvironmentValue("outputCoordinateSystem", "GEOGCS['GCS_WGS_1984',DATUM['D_WGS_1984',SPHEROID['WGS_1984',6378137.0,298.257223563]],PRIMEM['Greenwich',0.0],UNIT['Degree',0.0174532925199433],AUTHORITY['EPSG',4326]]")
                     Dim sev As Object = Nothing
                     Try
-                        gp.Execute(project, Nothing)
+                        gp.Execute(reProject, Nothing)
                         Console.WriteLine(gp.GetMessages(sev))
 
                     Catch ex As Exception
-                        Console.WriteLine("Projection Exception: " + gp.GetMessages(sev))
+                        Console.WriteLine(gp.GetMessages(sev))
                     End Try
                 End If
 
-                If typeResponse.Equals(True) Then
-                    'Create a new dataset in an existing project:
-                    'Create new Dataset, Get List of Projects, Add Dataset to Project 
-                    Dim rand As Random = New Random
-                    Dim randDig As String = rand.Next(1, 10)
-                    Dim uri As String = "https://strabospot.org/db/dataset"
-                    Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
-                    Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
-                    Dim id As String = modTimeStamp.ToString + randDig
-                    Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                    Dim datasetName As String = dataset.AliasName
-                    Dim self As String = uri + "/" + id
-                    Dim datasetData As New StringBuilder()
-                    Dim isCreated As String
-                    Dim authorization As String
-                    Dim binaryauthorization As Byte()
+        If typeResponse.Equals(True) Then
+            'Create a new dataset in an existing project:
+            'Create new Dataset, Get List of Projects, Add Dataset to Project 
+            Dim rand As Random = New Random
+            Dim randDig As String = rand.Next(1, 10)
+            Dim uri As String = "https://strabospot.org/db/dataset"
+            Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
+            Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
+            Dim id As String = modTimeStamp.ToString + randDig
+            Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            Dim datasetName As String = dataset.AliasName
+            Dim self As String = uri + "/" + id
+            Dim datasetData As New StringBuilder()
+            Dim isCreated As String
+            Dim authorization As String
+            Dim binaryauthorization As Byte()
 
-                    s = HttpWebRequest.Create(uri)
-                    enc = New System.Text.UTF8Encoding()
-                    datasetData.Append("{" + Environment.NewLine + """id"" : ")
-                    datasetData.Append(CType(id, Int64))
-                    datasetData.Append("," + Environment.NewLine + """name"" : """ + "" + datasetName + """,")
-                    datasetData.Append(Environment.NewLine + """modified_timestamp"" : ")
-                    datasetData.Append(modTimeStamp)
-                    datasetData.Append("," + Environment.NewLine + """date"" : """ + today.ToString + """")
-                    datasetData.Append(Environment.NewLine + "}")
-                    Dim strDatasetData As String = datasetData.ToString()
-                    Debug.Print(strDatasetData)
-                    postdatabytes = enc.GetBytes(strDatasetData)
-                    s.Method = "POST"
-                    s.ContentType = "application/json"
-                    s.ContentLength = postdatabytes.Length
+            s = HttpWebRequest.Create(uri)
+            enc = New System.Text.UTF8Encoding()
+            datasetData.Append("{" + Environment.NewLine + """id"" : ")
+            datasetData.Append(CType(id, Int64))
+            datasetData.Append("," + Environment.NewLine + """name"" : """ + "" + datasetName + """,")
+            datasetData.Append(Environment.NewLine + """modified_timestamp"" : ")
+            datasetData.Append(modTimeStamp)
+            datasetData.Append("," + Environment.NewLine + """date"" : """ + today.ToString + """")
+            datasetData.Append(Environment.NewLine + "}")
+            Dim strDatasetData As String = datasetData.ToString()
+            Debug.Print(strDatasetData)
+            postdatabytes = enc.GetBytes(strDatasetData)
+            s.Method = "POST"
+            s.ContentType = "application/json"
+            s.ContentLength = postdatabytes.Length
 
-                    authorization = emailaddress + ":" + password
-                    binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
-                    authorization = Convert.ToBase64String(binaryauthorization)
-                    authorization = "Basic " + authorization
-                    s.Headers.Add("Authorization", authorization)
+            authorization = emailaddress + ":" + password
+            binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+            authorization = Convert.ToBase64String(binaryauthorization)
+            authorization = "Basic " + authorization
+            s.Headers.Add("Authorization", authorization)
 
-                    Using stream = s.GetRequestStream()
-                        stream.Write(postdatabytes, 0, postdatabytes.Length)
-                    End Using
+            Using stream = s.GetRequestStream()
+                stream.Write(postdatabytes, 0, postdatabytes.Length)
+            End Using
 
-                    Try
-                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
-                        Dim statusCode As String = result.StatusCode.ToString
-                        Debug.Print(statusCode)
-                        datastream = result.GetResponseStream()
-                        reader = New StreamReader(datastream)
-                        responseFromServer = reader.ReadToEnd()
-                        Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
-                        isCreated = p.ToString
-                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
-                            MessageBox.Show("Strabo Dataset " + datasetName + " Successfully Created!")
-                        Else
-                            MessageBox.Show("Error creating Strabo Dataset. Try your request again.")
-                            TextBox1.Clear()
-                        End If
+            Try
+                Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                Dim statusCode As String = result.StatusCode.ToString
+                Debug.Print(statusCode)
+                datastream = result.GetResponseStream()
+                reader = New StreamReader(datastream)
+                responseFromServer = reader.ReadToEnd()
+                Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                isCreated = p.ToString
+                If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                    MessageBox.Show("Strabo Dataset " + datasetName + " Successfully Created!")
+                Else
+                    MessageBox.Show("Error creating Strabo Dataset. Try your request again.")
+                    TextBox1.Clear()
+                End If
 
-                    Catch WebException As Exception
-                        MessageBox.Show(WebException.Message)
-                    End Try
+            Catch WebException As Exception
+                MessageBox.Show(WebException.Message)
+            End Try
 
-                    'Get the selected Project's ID number
-                    Dim selIndex As Integer
-                    Dim projectIDsList As System.Array
-                    projectIDsList = projectIDs.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)
-                    selIndex = Projects.SelectedIndex
-                    selprojectNum = projectIDsList(selIndex)
-                    selprojectNum = selprojectNum.Trim
+            'Get the selected Project's ID number
+            Dim selIndex As Integer
+            Dim projectIDsList As System.Array
+            projectIDsList = projectIDs.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)
+            selIndex = Projects.SelectedIndex
+            selprojectNum = projectIDsList(selIndex)
+            selprojectNum = selprojectNum.Trim
 
-                    'Then Add the New Dataset to the Project 
-                    Dim addDataset As New StringBuilder()
-                    uri = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
-                    Debug.Print(uri)
-                    s = HttpWebRequest.Create(uri)
-                    enc = New System.Text.UTF8Encoding()
-                    addDataset.Append("{" + Environment.NewLine + """id"" : """ + id + """" + Environment.NewLine + "}")
-                    Dim strAddDataset As String = addDataset.ToString()
-                    postdatabytes = enc.GetBytes(strAddDataset)
-                    s.Method = "POST"
-                    s.ContentType = "application/json"
-                    s.ContentLength = postdatabytes.Length
+            'Then Add the New Dataset to the Project 
+            Dim addDataset As New StringBuilder()
+            uri = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
+            Debug.Print(uri)
+            s = HttpWebRequest.Create(uri)
+            enc = New System.Text.UTF8Encoding()
+            addDataset.Append("{" + Environment.NewLine + """id"" : """ + id + """" + Environment.NewLine + "}")
+            Dim strAddDataset As String = addDataset.ToString()
+            postdatabytes = enc.GetBytes(strAddDataset)
+            s.Method = "POST"
+            s.ContentType = "application/json"
+            s.ContentLength = postdatabytes.Length
 
-                    authorization = emailaddress + ":" + password
-                    binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
-                    authorization = Convert.ToBase64String(binaryauthorization)
-                    authorization = "Basic " + authorization
-                    s.Headers.Add("Authorization", authorization)
+            authorization = emailaddress + ":" + password
+            binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+            authorization = Convert.ToBase64String(binaryauthorization)
+            authorization = "Basic " + authorization
+            s.Headers.Add("Authorization", authorization)
 
-                    Using stream = s.GetRequestStream()
-                        stream.Write(postdatabytes, 0, postdatabytes.Length)
-                    End Using
+            Using stream = s.GetRequestStream()
+                stream.Write(postdatabytes, 0, postdatabytes.Length)
+            End Using
 
-                    Try
-                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
-                        Dim statusCode As String = result.StatusCode.ToString
-                        Debug.Print(statusCode)
-                        datastream = result.GetResponseStream()
-                        reader = New StreamReader(datastream)
-                        responseFromServer = reader.ReadToEnd()
-                        Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
-                        isCreated = p.ToString
-                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
-                            MessageBox.Show("Strabo dataset " + datasetName + " Successfully Added to " + Projects.SelectedItem)
-                        Else
-                            MessageBox.Show("""Error"": ""Dataset """ + datasetName + """ not found.""")
-                            TextBox1.Clear()
-                        End If
+            Try
+                Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                Dim statusCode As String = result.StatusCode.ToString
+                Debug.Print(statusCode)
+                datastream = result.GetResponseStream()
+                reader = New StreamReader(datastream)
+                responseFromServer = reader.ReadToEnd()
+                Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                isCreated = p.ToString
+                If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                    MessageBox.Show("Strabo dataset " + datasetName + " Successfully Added to " + Projects.SelectedItem)
+                Else
+                    MessageBox.Show("""Error"": ""Dataset """ + datasetName + """ not found.""")
+                    TextBox1.Clear()
+                End If
 
-                    Catch WebException As Exception
-                        MessageBox.Show(WebException.Message)
-                    End Try
+            Catch WebException As Exception
+                MessageBox.Show(WebException.Message)
+            End Try
 
-                    'Execute Features To Json from Conversion Tools Toolbox 
-                    If Not datasetSpatRef.Equals("GCS_WGS_1984") Then
-                        featToJson.in_features = ws + "\" + dataset.AliasName + "_Projected"
-                    Else
-                        featToJson.in_features = ws + "\" + dataset.AliasName
-                    End If
-                    jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
-                    If Not System.IO.Directory.Exists(jsonPath) Then
-                        featToJson.out_json_file = jsonPath
-                        featToJson.format_json = "FORMATTED"
+            'Execute Features To Json from Conversion Tools Toolbox 
+            If Not datasetSpatRef.Equals("GCS_WGS_1984") Then
+                featToJson.in_features = ws + "\" + dataset.AliasName + "_Projected"
+            Else
+                featToJson.in_features = ws + "\" + dataset.AliasName
+            End If
+            jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
+            If Not System.IO.Directory.Exists(jsonPath) Then
+                featToJson.out_json_file = jsonPath
+                featToJson.format_json = "FORMATTED"
 
-                        Dim sev As Object = Nothing
-                        Try
-                            gp.Execute(featToJson, Nothing)
-                            Console.WriteLine(gp.GetMessages(sev))
+                Dim sev As Object = Nothing
+                Try
+                    gp.Execute(featToJson, Nothing)
+                    Console.WriteLine(gp.GetMessages(sev))
 
-                        Catch ex As Exception
-                            Console.WriteLine(gp.GetMessages(sev))
-                        End Try
-                        'If the Json File exists this feature has been uploaded to Strabo
-                    Else
-                        MessageBox.Show("Error: Json File already exists.")
+                Catch ex As Exception
+                    Console.WriteLine(gp.GetMessages(sev))
+                End Try
+                'If the Json File exists this feature has been uploaded to Strabo
+            Else
+                MessageBox.Show("Error: Json File already exists.")
+                Continue For
+            End If
+
+            'PARSE THE NEWLY CREATED ESRIJSON FILE THEN FIND AND EDIT THE ORIGINAL JSON FILE
+            'Set up GeoJson StringBuilder 
+            sr = New StreamReader(jsonPath)
+            wholeFile = File.ReadAllLines(jsonPath)
+            For Each i In wholeFile
+                If i.ToString.Contains("null") Or i.ToString.Contains("FID") Then
+                    Continue For
+                Else
+                    esriFile = esriFile + i.ToString + Environment.NewLine
+                    numLines += 1
+                End If
+            Next
+            wholeFile = esriFile.Split(phrase, StringSplitOptions.None)
+            numAttributes = wholeFile.Length - 1
+            'Debug.Print(numAttributes.ToString)
+            attributes = New List(Of String)(wholeFile)
+            attributes.RemoveAt(0)
+            attr = attributes.ToArray()
+            Dim geoCoords As String = String.Empty
+            For Each a In attr
+                a = a.Remove(0, 2)
+                a = a.Replace("},", "")
+                For Each c In delChars
+                    a = a.Replace(c, "")
+                Next
+                Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
+                For Each value In splitLines
+                    value = value.Trim
+                    If value.Equals(String.Empty) Or value.Equals(",") Or value.Equals("""paths""" + " :") Or value.Equals("""rings""" + " :") Then
                         Continue For
-                    End If
-
-                    'PARSE THE NEWLY CREATED ESRIJSON FILE THEN FIND AND EDIT THE ORIGINAL JSON FILE
-                    'Set up GeoJson StringBuilder 
-                    sr = New StreamReader(jsonPath)
-                    wholeFile = File.ReadAllLines(jsonPath)
-                    For Each i In wholeFile
-                        If i.ToString.Contains("null") Or i.ToString.Contains("FID") Then
-                            Continue For
-                        Else
-                            esriFile = esriFile + i.ToString + Environment.NewLine
-                            numLines += 1
-                        End If
-                    Next
-                    wholeFile = esriFile.Split(phrase, StringSplitOptions.None)
-                    numAttributes = wholeFile.Length - 1
-                    'Debug.Print(numAttributes.ToString)
-                    attributes = New List(Of String)(wholeFile)
-                    attributes.RemoveAt(0)
-                    attr = attributes.ToArray()
-                    Dim geoCoords As String = String.Empty
-                    For Each a In attr
-                        a = a.Remove(0, 2)
-                        a = a.Replace("},", "")
-                        For Each c In delChars
-                            a = a.Replace(c, "")
-                        Next
-                        Dim splitLines As String() = a.Split(New Char() {Environment.NewLine}, numLines, StringSplitOptions.RemoveEmptyEntries)
-                        For Each value In splitLines
-                            value = value.Trim
-                            If value.Equals(String.Empty) Or value.Equals(",") Or value.Equals("""paths""" + " :") Or value.Equals("""rings""" + " :") Then
-                                Continue For
-                                'If the value doesn't contain a colon it is likely a geometry coordinate from a line or polygon
-                            ElseIf Not value.Contains(":") Then
-                                geoCoords += value + Environment.NewLine
-                            Else
-                                parts = value.Split(New Char() {":"}, 2)
-                                'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
-                                If parts(0).Contains("SpotID") Then
-                                    If sb.ToString.Contains(parts(1)) Then
-                                        sb.Append("")
-                                        geoCoords = String.Empty
-                                    ElseIf s.Equals(attr(0).ToString) Then    'Check if this is the first spot in the sequence-- if so keep adding 
-                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                    Else    'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
-                                        If sb.ToString.Contains(geoCoords) Then
-                                            sb.Append("----------------------------------")
-                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                            spots += 1
-                                        Else
-                                            sb.Append("""geometry"": " + Environment.NewLine)
-                                            sb.Append(geoCoords)
-                                            geoCoords = String.Empty
-                                            sb.Append("----------------------------------")
-                                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                            spots += 1
-                                        End If
-                                    End If
-                                ElseIf parts(0).Contains("x") Then
-                                    If sb.ToString.Contains(parts(1)) Then
-                                        sb.Append("")
-                                    Else
-                                        sb.Append("""geometry"": " + Environment.NewLine)
-                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                    End If
-                                ElseIf parts(0).Contains("y") Then
-                                    If sb.ToString.Contains(parts(1)) Then
-                                        sb.Append("")
-                                    Else
-                                        sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                    End If
-                                Else
-                                    sb.Append(parts(0) + parts(1) + Environment.NewLine)
-                                End If
-                            End If
-                        Next
-                    Next
-                    Dim strSeparator() As String = {"----------------------------------"}
-                    attr = sb.ToString.Split(strSeparator, StringSplitOptions.None)
-                    'Get the original Json file to edit----------------------------------------------Think about if this is not there, getting the it in a stream from Strabo
-                    Dim origJsonFile As String = ""
-                    If dataset.ShapeType.ToString.Equals("esriGeometryPoint") Then
-                        origJsonFile = fileName + "\origPts.json"
-                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolyline") Then
-                        origJsonFile = fileName + "\origLines.json"
-                    ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolygon") Then
-                        origJsonFile = fileName + "\origPolygons.json"
-                    End If
-                    Dim sr2 = New StreamReader(origJsonFile)
-                    Dim file2 As String
-                    file2 = File.ReadAllText(origJsonFile)
-                    Dim wholeJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(file2)
-                    Dim strLine As String
-                    Dim spotList As Object
-                    Dim spotID As Long
-                    Dim esriJson As String
-                    For Each spot In attr
-                        esriJson += spot
-                    Next
-                    For Each item In wholeJson("features")
-                        spotList = item("properties")
-                        For Each line In spotList
-                            strLine = line.ToString().Trim("[", "]").Trim
-                            parts = strLine.Split(New Char() {","}, 2)
-                            If parts(0).Equals("id") Then
-                                spotID = (parts(1))
-                            End If
-                        Next
-                        strLine = CompareSpotIDs(spotID, esriJson)
-                        If Not strLine.Equals(Nothing) Then
-                            wholeJson = CompareESRItoOrig(spotID, wholeJson, strLine)
-                        End If
-                    Next
-                    Dim editedJson As String = JsonConvert.SerializeObject(wholeJson)
-                    Debug.Print("Edited Json: " + editedJson)
-
-                    'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
-                    uri = "https://www.strabospot.org/db/datasetspots/" + id
-                    Debug.Print(uri)
-                    s = HttpWebRequest.Create(uri)
-                    enc = New System.Text.UTF8Encoding()
-                    postdatabytes = enc.GetBytes(editedJson)
-                    s.Method = "POST"
-                    s.ContentType = "application/json"
-                    s.ContentLength = postdatabytes.Length
-
-                    authorization = emailaddress + ":" + password
-                    binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
-                    authorization = Convert.ToBase64String(binaryauthorization)
-                    authorization = "Basic " + authorization
-                    s.Headers.Add("Authorization", authorization)
-
-                    Using stream = s.GetRequestStream()
-                        stream.Write(postdatabytes, 0, postdatabytes.Length)
-                    End Using
-
-                    Try
-                        Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
-                        Dim statusCode As String = result.StatusCode.ToString
-                        Debug.Print(statusCode)
-                        datastream = result.GetResponseStream()
-                        reader = New StreamReader(datastream)
-                        responseFromServer = reader.ReadToEnd()
-                        Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
-                        isCreated = p.ToString
-                        If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
-                            MessageBox.Show(datasetName + "added to Database")
-                        Else
-                            MessageBox.Show("""Error"": " + datasetName + "not added")
-                            TextBox1.Clear()
-                        End If
-
-                    Catch WebException As Exception
-                        MessageBox.Show(WebException.Message)
-                    End Try
-
-                    'If the dataset is Native Arc add to list of shapefiles
-                ElseIf (typeResponse.Equals(False)) Then
-                    If Not System.IO.Directory.Exists(shpFile) Then
-                        System.IO.Directory.CreateDirectory(shpFile)
-                    End If
-                    If (type.Contains("Shapefile")) Then
-                        shpDatasetName = ws + "\" + dataset.AliasName
-                        If (System.IO.File.Exists(shpDatasetName + ".shp")) Then
-                            For Each file As String In
-                                System.IO.Directory.GetFiles(ws)
-                                If file.Contains(dataset.AliasName + ".") Then
-                                    splitFile = file.Split("\")
-                                    endFile = splitFile(splitFile.Length - 1)
-                                    If (Not endFile.Contains(".lock")) Then
-                                        System.IO.File.Copy(file, shpFile + "\" + endFile, True)
-                                    End If
-                                End If
-                            Next
-                        End If
+                        'If the value doesn't contain a colon it is likely a geometry coordinate from a line or polygon
+                    ElseIf Not value.Contains(":") Then
+                        geoCoords += value + Environment.NewLine
                     Else
+                        parts = value.Split(New Char() {":"}, 2)
+                        'If the specific SpotID is already in the string builder then it is a continuation of the same spot. This information isn't needed. 
+                        If parts(0).Contains("SpotID") Then
+                            If sb.ToString.Contains(parts(1)) Then
+                                sb.Append("")
+                                geoCoords = String.Empty
+                            ElseIf s.Equals(attr(0).ToString) Then    'Check if this is the first spot in the sequence-- if so keep adding 
+                                sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                            Else    'If the specific SpotID is not already in the string builder, this means it has moved to a different spot's info. Add a break and continue. 
+                                If sb.ToString.Contains(geoCoords) Then
+                                    sb.Append("----------------------------------")
+                                    sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    spots += 1
+                                Else
+                                    sb.Append("""geometry"": " + Environment.NewLine)
+                                    sb.Append(geoCoords)
+                                    geoCoords = String.Empty
+                                    sb.Append("----------------------------------")
+                                    sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                                    spots += 1
+                                End If
+                            End If
+                        ElseIf parts(0).Contains("x") Then
+                            If sb.ToString.Contains(parts(1)) Then
+                                sb.Append("")
+                            Else
+                                sb.Append("""geometry"": " + Environment.NewLine)
+                                sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                            End If
+                        ElseIf parts(0).Contains("y") Then
+                            If sb.ToString.Contains(parts(1)) Then
+                                sb.Append("")
+                            Else
+                                sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                            End If
+                        Else
+                            sb.Append(parts(0) + parts(1) + Environment.NewLine)
+                        End If
+                    End If
+                Next
+            Next
+            Dim strSeparator() As String = {"----------------------------------"}
+            attr = sb.ToString.Split(strSeparator, StringSplitOptions.None)
+            'Get the original Json file to edit----------------------------------------------Think about if this is not there, getting the it in a stream from Strabo
+            Dim origJsonFile As String = ""
+            If dataset.ShapeType.ToString.Equals("esriGeometryPoint") Then
+                origJsonFile = fileName + "\origPts.json"
+            ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolyline") Then
+                origJsonFile = fileName + "\origLines.json"
+            ElseIf dataset.ShapeType.ToString.Equals("esriGeometryPolygon") Then
+                origJsonFile = fileName + "\origPolygons.json"
+            End If
+            Dim sr2 = New StreamReader(origJsonFile)
+            Dim file2 As String
+            file2 = File.ReadAllText(origJsonFile)
+            Dim wholeJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(file2)
+            Dim strLine As String
+            Dim spotList As Object
+            Dim spotID As Long
+            Dim esriJson As String
+            For Each spot In attr
+                esriJson += spot
+            Next
+            For Each item In wholeJson("features")
+                spotList = item("properties")
+                For Each line In spotList
+                    strLine = line.ToString().Trim("[", "]").Trim
+                    parts = strLine.Split(New Char() {","}, 2)
+                    If parts(0).Equals("id") Then
+                        spotID = (parts(1))
+                    End If
+                Next
+                strLine = CompareSpotIDs(spotID, esriJson)
+                If Not strLine.Equals(Nothing) Then
+                    wholeJson = CompareESRItoOrig(spotID, wholeJson, strLine)
+                End If
+            Next
+            Dim editedJson As String = JsonConvert.SerializeObject(wholeJson)
+            Debug.Print("Edited Json: " + editedJson)
+
+            'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
+            uri = "https://www.strabospot.org/db/datasetspots/" + id
+            Debug.Print(uri)
+            s = HttpWebRequest.Create(uri)
+            enc = New System.Text.UTF8Encoding()
+            postdatabytes = enc.GetBytes(editedJson)
+            s.Method = "POST"
+            s.ContentType = "application/json"
+            s.ContentLength = postdatabytes.Length
+
+            authorization = emailaddress + ":" + password
+            binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+            authorization = Convert.ToBase64String(binaryauthorization)
+            authorization = "Basic " + authorization
+            s.Headers.Add("Authorization", authorization)
+
+            Using stream = s.GetRequestStream()
+                stream.Write(postdatabytes, 0, postdatabytes.Length)
+            End Using
+
+            Try
+                Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                Dim statusCode As String = result.StatusCode.ToString
+                Debug.Print(statusCode)
+                datastream = result.GetResponseStream()
+                reader = New StreamReader(datastream)
+                responseFromServer = reader.ReadToEnd()
+                Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                isCreated = p.ToString
+                If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                    MessageBox.Show(datasetName + "added to Database")
+                Else
+                    MessageBox.Show("""Error"": " + datasetName + "not added")
+                    TextBox1.Clear()
+                End If
+
+            Catch WebException As Exception
+                MessageBox.Show(WebException.Message)
+            End Try
+
+            'If the dataset is Native Arc add to list of shapefiles
+        ElseIf (typeResponse.Equals(False)) Then
+            If Not System.IO.Directory.Exists(shpFile) Then
+                System.IO.Directory.CreateDirectory(shpFile)
+            End If
+            If (type.Contains("Shapefile")) Then
+                shpDatasetName = ws + "\" + dataset.AliasName
+                If (System.IO.File.Exists(shpDatasetName + ".shp")) Then
+                    For Each file As String In
+                        System.IO.Directory.GetFiles(ws)
+                        If file.Contains(dataset.AliasName + ".") Then
+                            splitFile = file.Split("\")
+                            endFile = splitFile(splitFile.Length - 1)
+                            If (Not endFile.Contains(".lock")) Then
+                                System.IO.File.Copy(file, shpFile + "\" + endFile, True)
+                            End If
+                        End If
+                    Next
+                End If
+                    Else 'Execute Feature Class to Shapefile script in Conversion Toolbox
                         If datasetSpatRef.Equals("GCS_WGS_1984") Then
                             shpDatasetName = ws + "\" + dataset.AliasName
                         ElseIf (Not (datasetSpatRef.Equals("GCS_WGS_1984"))) Then
@@ -1284,12 +1279,11 @@ Public Class Upload
                         Catch ex As Exception
                             Console.WriteLine(gp.GetMessages(sev))
                         End Try
-                    End If
-                    shpDatasets.Add(shpDatasetName)
-                End If
+            End If
+            shpDatasets.Add(shpDatasetName)
+        End If
             Next
 
-            'Execute Feature Class to Shapefile script in Conversion Toolbox 
             If Not shpDatasets.Count.Equals(0) Then
                 Dim zipShp As String = shpFile + ".zip"
                 Debug.Print(zipShp)

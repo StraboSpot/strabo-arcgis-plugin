@@ -2197,51 +2197,118 @@ Public Class Download
             System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf)
         End Try
 
-        'Link Tag Table with geometry from each feature class 
-        Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
-        dt = "self"
-        If (geoproc.Exists(envPath + "\points", dt)) Then
-            makeQTable.in_table = envPath + "\Tags"
-            makeQTable.in_table = envPath + "\points"
-            makeQTable.out_table = envPath + "\Tags_Points"
-            makeQTable.in_key_field_option = "NO_KEY_FIELD"
-            For Each field In tagFieldsSplit
-                makeQTable.in_field = field
-            Next
-            makeQTable.in_field = "points.geometrytype"
-            makeQTable.in_field = "points.Shape"
-            makeQTable.where_clause = "Tags.""SpotID"" = points.""SpotID"""
-
+        'Link Tag Table with geometry from each feature class
+        dt = "SpotID"
+            Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
+            Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
+            Dim queryFields As String
+            If (geoproc.Exists(envPath + "\points", dt)) Then
+                makeTableView.in_table = envPath + "\points"
+            makeTableView.out_view = envPath + "\pointsVIEW"
+            geoproc.AddOutputsToMap = False
+                Try
+                    geoproc.Execute(makeTableView, Nothing)
+                    Console.WriteLine(geoproc.GetMessages(sev))
+                Catch ex As Exception
+                    Console.WriteLine(ex)
+                End Try
             Try
+                makeQTable.in_table = "Tags;" + envPath + "\pointsVIEW"
+                makeQTable.out_table = envPath + "\Tags_Points"
+                makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                geoproc.AddOutputsToMap = True
+                For Each field In tagFieldsSplit
+                    queryFields += "Tags." + field + ";"
+                Next
+                queryFields = queryFields.Remove(queryFields.Length - 1)
+                makeQTable.in_field = "points.Shape;points.SpotID;" + queryFields
+                makeQTable.where_clause = """Tags"".""SpotID"" = ""points"".""SpotID"""
+
                 geoproc.Execute(makeQTable, Nothing)
                 Console.WriteLine(geoproc.GetMessages(sev))
             Catch ex As Exception
-                Console.WriteLine(geoproc.GetMessages(sev))
+                Debug.Print("MakeQueryTable Exception Caught")
+                Console.WriteLine(ex)
             End Try
-
         End If
+        If geoproc.Exists(envPath + "\lines", dt) Then
+            makeTableView.in_table = envPath + "\lines"
+            makeTableView.out_view = envPath + "\linesVIEW"
+            geoproc.AddOutputsToMap = False
+                Try
+                    geoproc.Execute(makeTableView, Nothing)
+                    Console.WriteLine(geoproc.GetMessages(sev))
+                Catch ex As Exception
+                    Console.WriteLine(ex)
+                End Try
+                Try
+                makeQTable.in_table = "Tags;" + envPath + "\linesVIEW"
+                makeQTable.out_table = envPath + "\Tags_Lines"
+                makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                geoproc.AddOutputsToMap = True
+                    For Each field In tagFieldsSplit
+                        queryFields += "Tags." + field + ";"
+                    Next
+                queryFields = queryFields.Remove(queryFields.Length - 1)
+                makeQTable.in_field = "lines.Shape;lines.SpotID;" + queryFields
+                makeQTable.where_clause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
 
+                geoproc.Execute(makeQTable, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+                Catch ex As Exception
+                    Debug.Print("MakeQueryTable Exception Caught")
+                    Console.WriteLine(ex)
+                End Try
+        End If
+        If geoproc.Exists(envPath + "\polygons", dt) Then
+            makeTableView.in_table = envPath + "\polygons"
+            makeTableView.out_view = envPath + "\polygonsVIEW"
+            geoproc.AddOutputsToMap = False
+            Try
+                geoproc.Execute(makeTableView, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+            Catch ex As Exception
+                Console.WriteLine(ex)
+            End Try
+            Try
+                makeQTable.in_table = "Tags;" + envPath + "\polygonsVIEW"
+                makeQTable.out_table = envPath + "\Tags_Polygons"
+                makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                geoproc.AddOutputsToMap = True
+                For Each field In tagFieldsSplit
+                    queryFields += "Tags." + field + ";"
+                Next
+                queryFields = queryFields.Remove(queryFields.Length - 1)
+                makeQTable.in_field = "polygons.Shape;polygons.SpotID;" + queryFields
+                makeQTable.where_clause = """Tags"".""SpotID"" = ""polygons"".""SpotID"""
+                geoproc.Execute(makeQTable, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+            Catch ex As Exception
+                Console.WriteLine(ex)
+            End Try
+        End If
         'Activate any existing hyperlinks for each layer with "self" field and change required fields
-        If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
-            'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
-            Dim hotlinkField As String = "self"
-            Dim pMxDoc As ESRI.ArcGIS.ArcMapUI.IMxDocument
-            Dim pMap As ESRI.ArcGIS.Carto.IMap
-            pMxDoc = My.ArcMap.Application.Document
-            pMap = pMxDoc.FocusMap
-            Dim featLayer As IFeatureLayer
-            Dim pLayerCount As Integer = pMap.LayerCount
-            Dim featClass As IFeatureClass
-            'Debug.Print(pLayerCount)
-            Dim index As Integer = 0
-            While index < pLayerCount
-                'Hyperlink settings
-                featLayer = pMap.Layer(index)
-                featClass = featLayer.FeatureClass
-                Dim hLContainer As IHotlinkContainer = featLayer
-                hLContainer.HotlinkField = hotlinkField
-                hLContainer.HotlinkType = esriHyperlinkType.esriHyperlinkTypeURL
-                index += 1
+        dt = "self"
+            If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
+                'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
+                Dim hotlinkField As String = "self"
+                Dim pMxDoc As ESRI.ArcGIS.ArcMapUI.IMxDocument
+                Dim pMap As ESRI.ArcGIS.Carto.IMap
+                pMxDoc = My.ArcMap.Application.Document
+                pMap = pMxDoc.FocusMap
+                Dim featLayer As IFeatureLayer
+                Dim pLayerCount As Integer = pMap.LayerCount
+                Dim featClass As IFeatureClass
+                'Debug.Print(pLayerCount)
+                Dim index As Integer = 0
+                While index < pLayerCount
+                    'Hyperlink settings
+                    featLayer = pMap.Layer(index)
+                    featClass = featLayer.FeatureClass
+                    Dim hLContainer As IHotlinkContainer = featLayer
+                    hLContainer.HotlinkField = hotlinkField
+                    hLContainer.HotlinkType = esriHyperlinkType.esriHyperlinkTypeURL
+                    index += 1
             End While
         End If
         MessageBox.Show("All Feature Classes Loaded.")
