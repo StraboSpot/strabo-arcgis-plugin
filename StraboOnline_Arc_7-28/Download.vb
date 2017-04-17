@@ -429,6 +429,32 @@ Public Class Download
         fieldsURL = "https://www.strabospot.org/db/datasetFields/" + selDatasetNum
         Debug.Print(fieldsURL)
 
+        'Save the original response with all geometry info to file 
+        s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+        enc = New System.Text.UTF8Encoding()
+        s.Method = "GET"
+        s.ContentType = "application/json"
+
+        authorization = emailaddress + ":" + password
+        binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+        authorization = Convert.ToBase64String(binaryauthorization)
+        authorization = "Basic " + authorization
+        s.Headers.Add("Authorization", authorization)
+
+        Try
+            Dim result = s.GetResponse()
+            datastream = result.GetResponseStream()
+            reader = New StreamReader(datastream)
+            responseFromServer = reader.ReadToEnd()
+
+            'Save the original GeoJSON response from the server  
+            origJsonPath = fileName + "\dataset-" + selDatasetNum + ".json"
+            System.IO.File.WriteAllText(origJsonPath, responseFromServer)
+
+        Catch WebException As Exception
+            MessageBox.Show(WebException.Message)
+        End Try
+
         Dim geometries As ArrayList = New ArrayList()
         geometries.Add("point")
         geometries.Add("line")
@@ -480,8 +506,11 @@ Public Class Download
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
                         ElseIf i.Equals("other_features") Then
                             esriJson.Append("""other_type"" : ""other_type""," + Environment.NewLine)
+                            esriJson.Append("""other_description"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""other_name"" : ""other_name""," + Environment.NewLine)
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("""rock_unit_notes"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""rock_unit_description"" : ""rock_unit_description""," + Environment.NewLine)
                         Else
                             esriJson.Append("""" + i + """ : """ + i + """," + Environment.NewLine)
                         End If
@@ -523,11 +552,33 @@ Public Class Download
                             esriJson.Append("""alias"" : ""other_type""," + Environment.NewLine)
                             esriJson.Append("""length"" : 160" + Environment.NewLine)
                             esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 160" + Environment.NewLine)
+                            esriJson.Append("}")
+
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
                             esriJson.Append("""name"" : ""rock_unit_notes""," + Environment.NewLine)
                             esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
                             esriJson.Append("""alias"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""rock_unit_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""rock_unit_description""," + Environment.NewLine)
                             esriJson.Append("""length"" : 1024" + Environment.NewLine)
                             esriJson.Append("}")
                         ElseIf i.ToString.Equals("description") Then
@@ -582,10 +633,6 @@ Public Class Download
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
-                        'Save the original GeoJSON response from the server  
-                        origJsonPath = fileName + "\origPts.json"
-                        System.IO.File.WriteAllText(origJsonPath, responseFromServer)
 
                         'Debug.Print(responseFromServer)
 
@@ -657,6 +704,9 @@ Public Class Download
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
+                                    End If
+                                    If parts(0).Equals("description") Then
+                                        parts(0) = "rock_unit_description"
                                     End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
@@ -897,6 +947,12 @@ Public Class Download
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
+                                        If parts(0).Equals("description") Then
+                                            parts(0) = "other_description"
+                                        End If
+                                        If parts(0).Equals("name") Then
+                                            parts(0) = "other_name"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -928,7 +984,7 @@ Public Class Download
 
                     esriJson.Append(Environment.NewLine + "]" + Environment.NewLine + "}")
 
-                    'Save the ESRI Formatted Json in the same file as the Original GeoJson   
+                    'Save the ESRI Formatted Json in the same folder as the Original GeoJson   
                     If (System.IO.Directory.Exists(fileName)) Then
                         JSONPath = fileName + "\arcJSONpts.json"
                         'Debug.Print(JSONPath)
@@ -1005,8 +1061,11 @@ Public Class Download
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
                         ElseIf i.Equals("other_features") Then
                             esriJson.Append("""other_type"" : ""other_type""," + Environment.NewLine)
+                            esriJson.Append("""other_description"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""other_name"" : ""other_name""," + Environment.NewLine)
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("""rock_unit_notes"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""rock_unit_description"" : ""rock_unit_description""," + Environment.NewLine)
                         Else
                             esriJson.Append("""" + i + """ : """ + i + """," + Environment.NewLine)
                         End If
@@ -1048,11 +1107,32 @@ Public Class Download
                             esriJson.Append("""alias"" : ""other_type""," + Environment.NewLine)
                             esriJson.Append("""length"" : 160" + Environment.NewLine)
                             esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 160" + Environment.NewLine)
+                            esriJson.Append("}")
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
                             esriJson.Append("""name"" : ""rock_unit_notes""," + Environment.NewLine)
                             esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
                             esriJson.Append("""alias"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""rock_unit_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""rock_unit_description""," + Environment.NewLine)
                             esriJson.Append("""length"" : 1024" + Environment.NewLine)
                             esriJson.Append("}")
                         ElseIf i.ToString.Contains("notes") Then
@@ -1099,10 +1179,6 @@ Public Class Download
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
-                        'Save the original GeoJson response from the server   
-                        origJsonPath = fileName + "\origLines.json"
-                        System.IO.File.WriteAllText(origJsonPath, responseFromServer)
 
                         'Debug.Print(responseFromServer)
 
@@ -1172,6 +1248,9 @@ Public Class Download
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
+                                    End If
+                                    If parts(0).Equals("description") Then
+                                        parts(0) = "rock_unit_description"
                                     End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
@@ -1439,6 +1518,12 @@ Public Class Download
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
+                                        If parts(0).Equals("description") Then
+                                            parts(0) = "other_description"
+                                        End If
+                                        If parts(0).Equals("name") Then
+                                            parts(0) = "other_name"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -1542,8 +1627,11 @@ Public Class Download
                             esriJson.Append("""_3d_structures_type"" : ""_3d_structures_type""," + Environment.NewLine)
                         ElseIf i.Equals("other_features") Then
                             esriJson.Append("""other_type"" : ""other_type""," + Environment.NewLine)
+                            esriJson.Append("""other_description"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""other_name"" : ""other_name""," + Environment.NewLine)
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("""rock_unit_notes"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""rock_unit_description"" : ""rock_unit_description""," + Environment.NewLine)
                         Else
                             esriJson.Append("""" + i + """ : """ + i + """," + Environment.NewLine)
                         End If
@@ -1585,11 +1673,32 @@ Public Class Download
                             esriJson.Append("""alias"" : ""other_type""," + Environment.NewLine)
                             esriJson.Append("""length"" : 160" + Environment.NewLine)
                             esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_description""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""other_name""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 160" + Environment.NewLine)
+                            esriJson.Append("}")
                         ElseIf i.Equals("rock_unit") Then
                             esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
                             esriJson.Append("""name"" : ""rock_unit_notes""," + Environment.NewLine)
                             esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
                             esriJson.Append("""alias"" : ""rock_unit_notes""," + Environment.NewLine)
+                            esriJson.Append("""length"" : 1024" + Environment.NewLine)
+                            esriJson.Append("}")
+
+                            esriJson.Append("," + Environment.NewLine + "{" + Environment.NewLine)
+                            esriJson.Append("""name"" : ""rock_unit_description""," + Environment.NewLine)
+                            esriJson.Append("""type"" : ""esriFieldTypeString""," + Environment.NewLine)
+                            esriJson.Append("""alias"" : ""rock_unit_description""," + Environment.NewLine)
                             esriJson.Append("""length"" : 1024" + Environment.NewLine)
                             esriJson.Append("}")
                         ElseIf i.ToString.Contains("notes") Then
@@ -1636,10 +1745,6 @@ Public Class Download
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-
-                        'Save the original GeoJson response from the server   
-                        origJsonPath = fileName + "\origPolygons.json"
-                        System.IO.File.WriteAllText(origJsonPath, responseFromServer)
 
                         'Debug.Print(responseFromServer)
 
@@ -1709,6 +1814,9 @@ Public Class Download
                                     End If
                                     If parts(0).Equals("notes") Then
                                         parts(0) = "rock_unit_notes"
+                                    End If
+                                    If parts(0).Equals("description") Then
+                                        parts(0) = "rock_unit_description"
                                     End If
                                     esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                 Next
@@ -1998,6 +2106,12 @@ Public Class Download
                                         If parts(0).Equals("type") Then
                                             parts(0) = "other_type"
                                         End If
+                                        If parts(0).Equals("description") Then
+                                            parts(0) = "other_description"
+                                        End If
+                                        If parts(0).Equals("name") Then
+                                            parts(0) = "other_name"
+                                        End If
                                         esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                     Next
                                     esriJson.Append(Environment.NewLine + "}," + Environment.NewLine + """geometry"": {" + Environment.NewLine)
@@ -2081,7 +2195,7 @@ Public Class Download
 
             Debug.Print(responseFromServer)
 
-            JSONPath = fileName + "\projectJson.json"
+            JSONPath = fileName + "\project-" + selprojectNum + ".json"
             System.IO.File.WriteAllText(JSONPath, responseFromServer)
 
             prj = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
@@ -2199,19 +2313,19 @@ Public Class Download
 
         'Link Tag Table with geometry from each feature class
         dt = "SpotID"
-            Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
-            Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
-            Dim queryFields As String
-            If (geoproc.Exists(envPath + "\points", dt)) Then
-                makeTableView.in_table = envPath + "\points"
+        Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
+        Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
+        Dim queryFields As String
+        If (geoproc.Exists(envPath + "\points", dt)) Then
+            makeTableView.in_table = envPath + "\points"
             makeTableView.out_view = envPath + "\pointsVIEW"
             geoproc.AddOutputsToMap = False
-                Try
-                    geoproc.Execute(makeTableView, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Console.WriteLine(ex)
-                End Try
+            Try
+                geoproc.Execute(makeTableView, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+            Catch ex As Exception
+                Console.WriteLine(ex)
+            End Try
             Try
                 makeQTable.in_table = "Tags;" + envPath + "\pointsVIEW"
                 makeQTable.out_table = envPath + "\Tags_Points"
@@ -2235,30 +2349,30 @@ Public Class Download
             makeTableView.in_table = envPath + "\lines"
             makeTableView.out_view = envPath + "\linesVIEW"
             geoproc.AddOutputsToMap = False
-                Try
-                    geoproc.Execute(makeTableView, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Console.WriteLine(ex)
-                End Try
-                Try
+            Try
+                geoproc.Execute(makeTableView, Nothing)
+                Console.WriteLine(geoproc.GetMessages(sev))
+            Catch ex As Exception
+                Console.WriteLine(ex)
+            End Try
+            Try
                 makeQTable.in_table = "Tags;" + envPath + "\linesVIEW"
                 makeQTable.out_table = envPath + "\Tags_Lines"
                 makeQTable.in_key_field_option = "NO_KEY_FIELD"
                 geoproc.AddOutputsToMap = True
-                    For Each field In tagFieldsSplit
-                        queryFields += "Tags." + field + ";"
-                    Next
+                For Each field In tagFieldsSplit
+                    queryFields += "Tags." + field + ";"
+                Next
                 queryFields = queryFields.Remove(queryFields.Length - 1)
                 makeQTable.in_field = "lines.Shape;lines.SpotID;" + queryFields
                 makeQTable.where_clause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
 
                 geoproc.Execute(makeQTable, Nothing)
                 Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Debug.Print("MakeQueryTable Exception Caught")
-                    Console.WriteLine(ex)
-                End Try
+            Catch ex As Exception
+                Debug.Print("MakeQueryTable Exception Caught")
+                Console.WriteLine(ex)
+            End Try
         End If
         If geoproc.Exists(envPath + "\polygons", dt) Then
             makeTableView.in_table = envPath + "\polygons"
@@ -2289,26 +2403,26 @@ Public Class Download
         End If
         'Activate any existing hyperlinks for each layer with "self" field and change required fields
         dt = "self"
-            If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
-                'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
-                Dim hotlinkField As String = "self"
-                Dim pMxDoc As ESRI.ArcGIS.ArcMapUI.IMxDocument
-                Dim pMap As ESRI.ArcGIS.Carto.IMap
-                pMxDoc = My.ArcMap.Application.Document
-                pMap = pMxDoc.FocusMap
-                Dim featLayer As IFeatureLayer
-                Dim pLayerCount As Integer = pMap.LayerCount
-                Dim featClass As IFeatureClass
-                'Debug.Print(pLayerCount)
-                Dim index As Integer = 0
-                While index < pLayerCount
-                    'Hyperlink settings
-                    featLayer = pMap.Layer(index)
-                    featClass = featLayer.FeatureClass
-                    Dim hLContainer As IHotlinkContainer = featLayer
-                    hLContainer.HotlinkField = hotlinkField
-                    hLContainer.HotlinkType = esriHyperlinkType.esriHyperlinkTypeURL
-                    index += 1
+        If (geoproc.Exists(envPath + "\points", dt)) Or (geoproc.Exists(envPath + "\lines", dt)) Or (geoproc.Exists(envPath + "\polygons", dt)) Then
+            'Based on Amirian text pg. 322 and code for current ArcMap session from Kristen Jordan
+            Dim hotlinkField As String = "self"
+            Dim pMxDoc As ESRI.ArcGIS.ArcMapUI.IMxDocument
+            Dim pMap As ESRI.ArcGIS.Carto.IMap
+            pMxDoc = My.ArcMap.Application.Document
+            pMap = pMxDoc.FocusMap
+            Dim featLayer As IFeatureLayer
+            Dim pLayerCount As Integer = pMap.LayerCount
+            Dim featClass As IFeatureClass
+            'Debug.Print(pLayerCount)
+            Dim index As Integer = 0
+            While index < pLayerCount
+                'Hyperlink settings
+                featLayer = pMap.Layer(index)
+                featClass = featLayer.FeatureClass
+                Dim hLContainer As IHotlinkContainer = featLayer
+                hLContainer.HotlinkField = hotlinkField
+                hLContainer.HotlinkType = esriHyperlinkType.esriHyperlinkTypeURL
+                index += 1
             End While
         End If
         MessageBox.Show("All Feature Classes Loaded.")

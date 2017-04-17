@@ -26,8 +26,6 @@ Partial Class Upload
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.Button1 = New System.Windows.Forms.Button()
         Me.Label2 = New System.Windows.Forms.Label()
-        Me.TextBox1 = New System.Windows.Forms.TextBox()
-        Me.Label3 = New System.Windows.Forms.Label()
         Me.Button2 = New System.Windows.Forms.Button()
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         Me.ListBox1 = New System.Windows.Forms.ListBox()
@@ -38,11 +36,12 @@ Partial Class Upload
         Me.Username = New System.Windows.Forms.TextBox()
         Me.RadioButton3 = New System.Windows.Forms.RadioButton()
         Me.Label6 = New System.Windows.Forms.Label()
-        Me.Projects = New System.Windows.Forms.ListBox()
-        Me.getProjects = New System.Windows.Forms.Button()
         Me.LogIn = New System.Windows.Forms.Button()
         Me.back = New System.Windows.Forms.Button()
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel()
+        Me.Label3 = New System.Windows.Forms.Label()
+        Me.Coordinates = New System.Windows.Forms.ListBox()
+        Me.Label4 = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'Label1
@@ -59,12 +58,12 @@ Partial Class Upload
         '
         Me.RadioButton1.AutoSize = True
         Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton1.Location = New System.Drawing.Point(136, 175)
+        Me.RadioButton1.Location = New System.Drawing.Point(136, 158)
         Me.RadioButton1.Name = "RadioButton1"
-        Me.RadioButton1.Size = New System.Drawing.Size(268, 29)
+        Me.RadioButton1.Size = New System.Drawing.Size(281, 54)
         Me.RadioButton1.TabIndex = 2
         Me.RadioButton1.TabStop = True
-        Me.RadioButton1.Text = "Create New Strabo Project"
+        Me.RadioButton1.Text = "Update Existing Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "(Overwrites with Versioning)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
         '
@@ -90,26 +89,6 @@ Partial Class Upload
         Me.Label2.Text = "Create a New Strabo Project"
         Me.Label2.Visible = False
         '
-        'TextBox1
-        '
-        Me.TextBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 11.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.TextBox1.Location = New System.Drawing.Point(20, 236)
-        Me.TextBox1.Name = "TextBox1"
-        Me.TextBox1.Size = New System.Drawing.Size(209, 32)
-        Me.TextBox1.TabIndex = 6
-        Me.TextBox1.Visible = False
-        '
-        'Label3
-        '
-        Me.Label3.AutoSize = True
-        Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label3.Location = New System.Drawing.Point(28, 189)
-        Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(180, 25)
-        Me.Label3.TabIndex = 7
-        Me.Label3.Text = "Enter Project Name"
-        Me.Label3.Visible = False
-        '
         'Button2
         '
         Me.Button2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
@@ -126,7 +105,7 @@ Partial Class Upload
         Me.ListBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListBox1.FormattingEnabled = True
         Me.ListBox1.ItemHeight = 25
-        Me.ListBox1.Location = New System.Drawing.Point(313, 225)
+        Me.ListBox1.Location = New System.Drawing.Point(172, 217)
         Me.ListBox1.Name = "ListBox1"
         Me.ListBox1.Size = New System.Drawing.Size(239, 129)
         Me.ListBox1.TabIndex = 27
@@ -136,7 +115,7 @@ Partial Class Upload
         '
         Me.Label5.AutoSize = True
         Me.Label5.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label5.Location = New System.Drawing.Point(308, 164)
+        Me.Label5.Location = New System.Drawing.Point(167, 164)
         Me.Label5.Name = "Label5"
         Me.Label5.Size = New System.Drawing.Size(233, 50)
         Me.Label5.TabIndex = 28
@@ -204,30 +183,6 @@ Partial Class Upload
         Me.Label6.Text = "Create a New Strabo Dataset"
         Me.Label6.Visible = False
         '
-        'Projects
-        '
-        Me.Projects.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Projects.FormattingEnabled = True
-        Me.Projects.ItemHeight = 29
-        Me.Projects.Location = New System.Drawing.Point(33, 182)
-        Me.Projects.Name = "Projects"
-        Me.Projects.Size = New System.Drawing.Size(239, 120)
-        Me.Projects.TabIndex = 40
-        Me.Projects.Visible = False
-        '
-        'getProjects
-        '
-        Me.getProjects.AutoSize = True
-        Me.getProjects.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.getProjects.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.getProjects.Location = New System.Drawing.Point(76, 308)
-        Me.getProjects.Name = "getProjects"
-        Me.getProjects.Size = New System.Drawing.Size(128, 35)
-        Me.getProjects.TabIndex = 39
-        Me.getProjects.Text = "Get Projects"
-        Me.getProjects.UseVisualStyleBackColor = True
-        Me.getProjects.Visible = False
-        '
         'LogIn
         '
         Me.LogIn.AutoSize = True
@@ -262,29 +217,59 @@ Partial Class Upload
         Me.LinkLabel1.TabStop = True
         Me.LinkLabel1.Text = "Visit StraboSpot"
         '
+        'Label3
+        '
+        Me.Label3.AutoSize = True
+        Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label3.Location = New System.Drawing.Point(69, 66)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(305, 25)
+        Me.Label3.TabIndex = 44
+        Me.Label3.Text = "Choose Coordinates For Spot,"
+        Me.Label3.Visible = False
+        '
+        'Coordinates
+        '
+        Me.Coordinates.FormattingEnabled = True
+        Me.Coordinates.ItemHeight = 20
+        Me.Coordinates.Location = New System.Drawing.Point(189, 105)
+        Me.Coordinates.Name = "Coordinates"
+        Me.Coordinates.Size = New System.Drawing.Size(222, 244)
+        Me.Coordinates.TabIndex = 45
+        '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label4.Location = New System.Drawing.Point(380, 66)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(71, 25)
+        Me.Label4.TabIndex = 46
+        Me.Label4.Text = "Label4"
+        Me.Label4.Visible = False
+        '
         'Upload
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(592, 459)
+        Me.Controls.Add(Me.Label4)
+        Me.Controls.Add(Me.Coordinates)
+        Me.Controls.Add(Me.Label3)
+        Me.Controls.Add(Me.ListBox1)
+        Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.LinkLabel1)
         Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.RadioButton3)
         Me.Controls.Add(Me.back)
         Me.Controls.Add(Me.LogIn)
-        Me.Controls.Add(Me.Projects)
-        Me.Controls.Add(Me.getProjects)
         Me.Controls.Add(Me.Label6)
         Me.Controls.Add(Me.Label8)
         Me.Controls.Add(Me.Label9)
         Me.Controls.Add(Me.PasswordBox)
         Me.Controls.Add(Me.Username)
-        Me.Controls.Add(Me.Label5)
-        Me.Controls.Add(Me.ListBox1)
         Me.Controls.Add(Me.Button2)
-        Me.Controls.Add(Me.Label3)
-        Me.Controls.Add(Me.TextBox1)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.Label1)
@@ -298,8 +283,6 @@ Partial Class Upload
     Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
     Friend WithEvents Button1 As System.Windows.Forms.Button
     Friend WithEvents Label2 As System.Windows.Forms.Label
-    Friend WithEvents TextBox1 As System.Windows.Forms.TextBox
-    Friend WithEvents Label3 As System.Windows.Forms.Label
     Friend WithEvents Button2 As System.Windows.Forms.Button
     Friend WithEvents FolderBrowserDialog1 As System.Windows.Forms.FolderBrowserDialog
     Friend WithEvents ListBox1 As System.Windows.Forms.ListBox
@@ -310,9 +293,10 @@ Partial Class Upload
     Friend WithEvents Username As System.Windows.Forms.TextBox
     Friend WithEvents RadioButton3 As System.Windows.Forms.RadioButton
     Friend WithEvents Label6 As System.Windows.Forms.Label
-    Friend WithEvents Projects As System.Windows.Forms.ListBox
-    Friend WithEvents getProjects As System.Windows.Forms.Button
     Friend WithEvents LogIn As System.Windows.Forms.Button
     Friend WithEvents back As System.Windows.Forms.Button
     Friend WithEvents LinkLabel1 As System.Windows.Forms.LinkLabel
+    Friend WithEvents Label3 As System.Windows.Forms.Label
+    Friend WithEvents Coordinates As System.Windows.Forms.ListBox
+    Friend WithEvents Label4 As System.Windows.Forms.Label
 End Class
