@@ -5,6 +5,7 @@ Imports System.Reflection
 Imports System.Web.Script.Serialization
 Imports System.Object
 Imports System.Windows.Forms
+Imports System.Drawing
 'Import necessary extensions for FileGDB-- Remember to add as refs too!
 Imports ESRI.ArcGIS.DataSourcesGDB
 Imports ESRI.ArcGIS.esriSystem
@@ -263,6 +264,7 @@ Public Class Download
         straboToGIS.Visible = True
         BackDatasets.Visible = True
         RadioButton1.Visible = True
+        RadioButton2.Visible = True
 
         'Hide the Strabo Choose Phase elements 
         Sel.Visible = False
@@ -411,6 +413,7 @@ Public Class Download
         Dim sev As Object = Nothing
         Client.Credentials = New NetworkCredential(emailaddress, password)
         selprojectNum = selprojectNum.Trim
+
 
         Dim fileName As String = PathName.Text + "\" + pair.Value
         If (Not System.IO.Directory.Exists(fileName)) Then
@@ -901,17 +904,71 @@ Public Class Download
                                             parts(1) = Replace(parts(1), """", "'")
                                         End If
                                         If parts(0).Equals("id") Then
-                                            imgID = parts(1)
+                                            imgID = parts(1).Trim
                                             'parts(0) = "FeatID"
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
+                                            'Change to https for older datasets (before server switch)
+                                            parts(1) = parts(1).Trim()
+                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            If urlSplit(0).Equals("http") Then
+                                                parts(1) = Replace(parts(1), "http", "https")
+                                            End If
+                                            Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
-                                            'Download the image to same file Json files are saved
+                                            Dim statusCode As String = ""
+                                            Dim image As Image
+                                            Dim imageResult As HttpWebResponse
+                                            'Download the image to same file Json files are saved as a .Tiff
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Tiff)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
+
                                                 'Debug.Print(imgFile)
-                                                Client.DownloadFile(parts(1), imgFile)
+                                                'Client.DownloadFile(parts(1), imgFile)
+                                            ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                imgFile = fileName + "\" + imgID + ".jpeg"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
                                             End If
+
                                         Else
                                             Continue For
                                         End If
@@ -1468,15 +1525,67 @@ Public Class Download
                                             parts(1) = Replace(parts(1), """", "'")
                                         End If
                                         If parts(0).Equals("id") Then
-                                            imgID = parts(1)
+                                            imgID = parts(1).Trim
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
+                                            'Change to https for older datasets (before server switch)
+                                            parts(1) = parts(1).Trim()
+                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            If urlSplit(0).Equals("http") Then
+                                                parts(1) = Replace(parts(1), "http", "https")
+                                            End If
+                                            Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
-                                            'Download the image to same file Json files are saved
+                                            Dim statusCode As String = ""
+                                            Dim image As Image
+                                            Dim imageResult As HttpWebResponse
+                                            'Download the image to same file Json files are saved as a .Tiff
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Tiff)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
                                                 'Debug.Print(imgFile)
-                                                Client.DownloadFile(parts(1), imgFile)
+                                                'Client.DownloadFile(parts(1), imgFile)
+                                            ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                imgFile = fileName + "\" + imgID + ".jpeg"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
                                             End If
                                         Else
                                             Continue For
@@ -2055,15 +2164,68 @@ Public Class Download
                                             parts(1) = Replace(parts(1), """", "'")
                                         End If
                                         If parts(0).Equals("id") Then
-                                            imgID = parts(1)
+                                            imgID = parts(1).Trim
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
+                                            parts(1) = parts(1).Trim
+                                            'Change to https for older datasets (before server switch)
+                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            If urlSplit(0).Equals("http") Then
+                                                parts(1) = Replace(parts(1), "http", "https")
+                                            End If
+                                            Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
-                                            'Download the image to same file Json files are saved
+                                            Dim statusCode As String = ""
+                                            Dim image As Image
+                                            Dim imageResult As HttpWebResponse
+                                            'Download the image to same file Json files are saved as a .Tiff
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Tiff)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
+
                                                 'Debug.Print(imgFile)
-                                                Client.DownloadFile(parts(1), imgFile)
+                                                'Client.DownloadFile(parts(1), imgFile)
+                                            ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                imgFile = fileName + "\" + imgID + ".jpeg"
+                                                Debug.Print(imgFile)
+                                                s = HttpWebRequest.Create(parts(1))
+                                                enc = New System.Text.UTF8Encoding()
+                                                s.Method = "GET"
+                                                s.ContentType = "application/json"
+                                                authorization = emailaddress + ":" + password
+                                                binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                                                authorization = Convert.ToBase64String(binaryauthorization)
+                                                authorization = "Basic " + authorization
+                                                s.Headers.Add("Authorization", authorization)
+                                                Try
+                                                    imageResult = CType(s.GetResponse(), HttpWebResponse)
+                                                    statusCode = imageResult.StatusCode.ToString
+                                                    If statusCode.Equals("OK") Then
+                                                        image = System.Drawing.Image.FromStream(imageResult.GetResponseStream)
+                                                        image.Save(imgFile, System.Drawing.Imaging.ImageFormat.Jpeg)
+                                                    End If
+                                                Catch WebException As Exception
+                                                    MessageBox.Show(WebException.Message)
+                                                End Try
                                             End If
                                         Else
                                             Continue For

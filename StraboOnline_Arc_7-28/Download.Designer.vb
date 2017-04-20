@@ -48,6 +48,7 @@ Partial Class Download
         Me.FinalInstructions = New System.Windows.Forms.Label()
         Me.Label5 = New System.Windows.Forms.Label()
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
+        Me.RadioButton2 = New System.Windows.Forms.RadioButton()
         Me.SuspendLayout()
         '
         'Label1
@@ -155,7 +156,7 @@ Partial Class Download
         Me.straboToGIS.AutoSize = True
         Me.straboToGIS.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.straboToGIS.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.straboToGIS.Location = New System.Drawing.Point(254, 356)
+        Me.straboToGIS.Location = New System.Drawing.Point(254, 381)
         Me.straboToGIS.Name = "straboToGIS"
         Me.straboToGIS.Size = New System.Drawing.Size(132, 35)
         Me.straboToGIS.TabIndex = 20
@@ -312,14 +313,27 @@ Partial Class Download
         '
         Me.RadioButton1.AutoSize = True
         Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton1.Location = New System.Drawing.Point(198, 312)
+        Me.RadioButton1.Location = New System.Drawing.Point(126, 312)
         Me.RadioButton1.Name = "RadioButton1"
-        Me.RadioButton1.Size = New System.Drawing.Size(276, 29)
+        Me.RadioButton1.Size = New System.Drawing.Size(399, 29)
         Me.RadioButton1.TabIndex = 38
         Me.RadioButton1.TabStop = True
-        Me.RadioButton1.Text = "Check to Download Images"
+        Me.RadioButton1.Text = "Check to Download Images in .Tiff Format"
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
+        '
+        'RadioButton2
+        '
+        Me.RadioButton2.AutoSize = True
+        Me.RadioButton2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.RadioButton2.Location = New System.Drawing.Point(126, 346)
+        Me.RadioButton2.Name = "RadioButton2"
+        Me.RadioButton2.Size = New System.Drawing.Size(424, 29)
+        Me.RadioButton2.TabIndex = 39
+        Me.RadioButton2.TabStop = True
+        Me.RadioButton2.Text = "Check to Download Images in .JPEG Format"
+        Me.RadioButton2.UseVisualStyleBackColor = True
+        Me.RadioButton2.Visible = False
         '
         'Download
         '
@@ -328,6 +342,7 @@ Partial Class Download
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(640, 562)
+        Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.FinalInstructions)
@@ -384,4 +399,5 @@ Partial Class Download
     Friend WithEvents FinalInstructions As System.Windows.Forms.Label
     Friend WithEvents Label5 As System.Windows.Forms.Label
     Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
+    Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
 End Class
