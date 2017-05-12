@@ -236,6 +236,7 @@ Partial Class Upload
         Me.Coordinates.Name = "Coordinates"
         Me.Coordinates.Size = New System.Drawing.Size(222, 244)
         Me.Coordinates.TabIndex = 45
+        Me.Coordinates.Visible = False
         '
         'Label4
         '

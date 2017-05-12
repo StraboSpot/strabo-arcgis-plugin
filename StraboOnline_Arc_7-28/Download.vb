@@ -2391,251 +2391,248 @@ Public Class Download
                         Next
                     End If
                 Next
-            End If
-            Debug.Print(tagFields)
-        End If
-
-        'Create the Tags Table in ArcMap 
-        makeTable.out_path = envPath
-        makeTable.out_name = "Tags"
-        Try
-            geoproc.Execute(makeTable, Nothing)
-            Console.WriteLine(geoproc.GetMessages(sev))
-        Catch ex As Exception
-            Console.WriteLine(geoproc.GetMessages(sev))
-        End Try
-
-        'Add the fields to the table
-        Dim tagFieldsSplit As String() = tagFields.Split(New Char() {","}, StringSplitOptions.RemoveEmptyEntries)
-        If geoproc.Exists(envPath + "\Tags", dt) Then
-            addFields.in_table = "Tags"
-            For Each field In tagFieldsSplit
-                'Debug.Print(field)
-                addFields.field_name = field
-                addFields.field_type = "TEXT"
-                If field.Equals("description") Or field.Equals("notes") Then
-                    addFields.field_length = 1024
-                Else
-                    addFields.field_length = 160
-                End If
+                Debug.Print(tagFields)
+                'Create the Tags Table in ArcMap 
+                makeTable.out_path = envPath
+                makeTable.out_name = "Tags"
                 Try
-                    geoproc.Execute(addFields, Nothing)
+                    geoproc.Execute(makeTable, Nothing)
                     Console.WriteLine(geoproc.GetMessages(sev))
                 Catch ex As Exception
                     Console.WriteLine(geoproc.GetMessages(sev))
                 End Try
-            Next
-        End If
-        'Add tag data to the TagsTable
-        Dim workspaceFactory As IWorkspaceFactory = New ESRI.ArcGIS.DataSourcesGDB.FileGDBWorkspaceFactory
-        Dim featWorkspace As IFeatureWorkspace = workspaceFactory.OpenFromFile(envPath, 0)
-        Dim tagTable As ITable = featWorkspace.OpenTable("Tags")
-        'Dim rowSubTypes As IRowSubtypes
-        Dim fieldIndex As Integer
-        'Dim row As IRow
-        Dim iCur As ICursor = tagTable.Insert(True)
-        Dim rowBuf As IRowBuffer
-        If prj.ContainsKey("tags") Then
-            For Each tg In prj("tags")
-                If tg.ContainsKey("spots") Then
-                    For Each spot In tg("spots")
-                        If spotIDs.Contains(spot.ToString) Then 'Insert a new row for each SpotID
-                            'row = tagTable.CreateRow()
-                            'rowSubTypes = CType(row, IRowSubtypes)
-                            'rowSubTypes.InitDefaultValues()
-                            rowBuf = tagTable.CreateRowBuffer()
-                            fieldIndex = tagTable.FindField("SpotID")
-                            rowBuf.Value(fieldIndex) = spot.ToString
-                            For Each line In tg
-                                If Not line.ToString.Contains("System.Object") Then
-                                    strLine = line.ToString().Trim("[", "]").Trim
-                                    parts = strLine.Split(New Char() {","}, 2)
-                                    If parts(0).Equals("id") Then
-                                        parts(0) = "tagID"
-                                    End If
-                                    fieldIndex = tagTable.FindField(parts(0))
-                                    rowBuf.Value(fieldIndex) = parts(1)
-                                    Debug.Print(parts(0) + " " + parts(1))
-                                End If
-                            Next
-                            iCur.InsertRow(rowBuf)
+
+                'Add the fields to the table
+                Dim tagFieldsSplit As String() = tagFields.Split(New Char() {","}, StringSplitOptions.RemoveEmptyEntries)
+                If geoproc.Exists(envPath + "\Tags", dt) Then
+                    addFields.in_table = "Tags"
+                    For Each field In tagFieldsSplit
+                        'Debug.Print(field)
+                        addFields.field_name = field
+                        addFields.field_type = "TEXT"
+                        If field.Equals("description") Or field.Equals("notes") Then
+                            addFields.field_length = 1024
+                        Else
+                            addFields.field_length = 160
                         End If
+                        Try
+                            geoproc.Execute(addFields, Nothing)
+                            Console.WriteLine(geoproc.GetMessages(sev))
+                        Catch ex As Exception
+                            Console.WriteLine(geoproc.GetMessages(sev))
+                        End Try
                     Next
                 End If
-            Next
-        End If
-        Try
-            iCur.Flush()
-        Catch ex As Exception
-            Console.WriteLine(ex.Message)
-        Finally
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur)
-            System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf)
-        End Try
+                'Add tag data to the TagsTable
+                Dim workspaceFactory As IWorkspaceFactory = New ESRI.ArcGIS.DataSourcesGDB.FileGDBWorkspaceFactory
+                Dim featWorkspace As IFeatureWorkspace = workspaceFactory.OpenFromFile(envPath, 0)
+                Dim tagTable As ITable = featWorkspace.OpenTable("Tags")
+                'Dim rowSubTypes As IRowSubtypes
+                Dim fieldIndex As Integer
+                'Dim row As IRow
+                Dim iCur As ICursor = tagTable.Insert(True)
+                Dim rowBuf As IRowBuffer
+                For Each tg In prj("tags")
+                    If tg.ContainsKey("spots") Then
+                        For Each spot In tg("spots")
+                            If spotIDs.Contains(spot.ToString) Then 'Insert a new row for each SpotID
+                                'row = tagTable.CreateRow()
+                                'rowSubTypes = CType(row, IRowSubtypes)
+                                'rowSubTypes.InitDefaultValues()
+                                rowBuf = tagTable.CreateRowBuffer()
+                                fieldIndex = tagTable.FindField("SpotID")
+                                rowBuf.Value(fieldIndex) = spot.ToString
+                                For Each line In tg
+                                    If Not line.ToString.Contains("System.Object") Then
+                                        strLine = line.ToString().Trim("[", "]").Trim
+                                        parts = strLine.Split(New Char() {","}, 2)
+                                        If parts(0).Equals("id") Then
+                                            parts(0) = "tagID"
+                                        End If
+                                        fieldIndex = tagTable.FindField(parts(0))
+                                        rowBuf.Value(fieldIndex) = parts(1)
+                                        Debug.Print(parts(0) + " " + parts(1))
+                                    End If
+                                Next
+                                iCur.InsertRow(rowBuf)
+                            End If
+                        Next
+                    End If
+                Next
+            Try
+                iCur.Flush()
+            Catch ex As Exception
+                Console.WriteLine(ex.Message)
+            Finally
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur)
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf)
+            End Try
 
-        'Link Tag Table with geometry from each feature class
-        dt = "SpotID"
-        Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
-        Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
-        Dim copyFeat As ESRI.ArcGIS.DataManagementTools.CopyFeatures = New ESRI.ArcGIS.DataManagementTools.CopyFeatures()
-        Dim queryFields As String = ""
-        For Each field In tagFieldsSplit
-            queryFields += "Tags." + field + ";"
-        Next
-        queryFields = queryFields.Remove(queryFields.Length - 1)
-        Dim cur As ICursor
-        Dim queryDef As IQueryDef = featWorkspace.CreateQueryDef()
-        If (geoproc.Exists(envPath + "\points", dt)) Then
-            'Make Table View
-            makeTableView.in_table = envPath + "\points"
-            makeTableView.out_view = envPath + "\pointsVIEW"
-            geoproc.AddOutputsToMap = False
-            Try
-                geoproc.Execute(makeTableView, Nothing)
-                Console.WriteLine(geoproc.GetMessages(sev))
-            Catch ex As Exception
-                Console.WriteLine(ex)
-            End Try
-            'Check if the Query will result in any records returned 
-            Dim ptsRow As IRow = Nothing
-            Try
-                queryDef.Tables = "Tags, points"
-                queryDef.SubFields = "points.Shape,points.SpotID,Tags.SpotID,Tags.type"
-                queryDef.WhereClause = """Tags"".""SpotID"" = ""points"".""SpotID"""
-                cur = queryDef.Evaluate()
-                ptsRow = cur.NextRow()
-            Catch ex As Exception
-                Debug.Print(ex.ToString)
-                Debug.Print("Points query definition exception")
-            End Try
-            If ptsRow IsNot Nothing Then
-                'If the query returns a result Make Query Table 
-                makeQTable.in_table = "Tags;" + envPath + "\pointsVIEW"
-                makeQTable.out_table = envPath + "\Tags_Points"
-                makeQTable.in_key_field_option = "NO_KEY_FIELD"
+            'Link Tag Table with geometry from each feature class
+            dt = "SpotID"
+            Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
+            Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
+            Dim copyFeat As ESRI.ArcGIS.DataManagementTools.CopyFeatures = New ESRI.ArcGIS.DataManagementTools.CopyFeatures()
+            Dim queryFields As String = ""
+            For Each field In tagFieldsSplit
+                queryFields += "Tags." + field + ";"
+            Next
+            queryFields = queryFields.Remove(queryFields.Length - 1)
+            Dim cur As ICursor
+            Dim queryDef As IQueryDef = featWorkspace.CreateQueryDef()
+            If (geoproc.Exists(envPath + "\points", dt)) Then
+                'Make Table View
+                makeTableView.in_table = envPath + "\points"
+                makeTableView.out_view = envPath + "\pointsVIEW"
                 geoproc.AddOutputsToMap = False
-                makeQTable.in_field = "points.Shape;points.SpotID;" + queryFields
-                makeQTable.where_clause = """Tags"".""SpotID"" = ""points"".""SpotID"""
                 Try
-                    geoproc.Execute(makeQTable, Nothing)
+                    geoproc.Execute(makeTableView, Nothing)
                     Console.WriteLine(geoproc.GetMessages(sev))
                 Catch ex As Exception
-                    Debug.Print("MakeQueryTable Exception Caught")
-                    Console.WriteLine(ex.ToString)
+                    Console.WriteLine(ex)
                 End Try
-                'Copy Features to Save to Database
-                geoproc.AddOutputsToMap = True
-                copyFeat.in_features = envPath + "\Tags_Points"
-                copyFeat.out_feature_class = envPath + "\Pts_Tags"
+                'Check if the Query will result in any records returned 
+                Dim ptsRow As IRow = Nothing
                 Try
-                    geoproc.Execute(copyFeat, Nothing)
+                    queryDef.Tables = "Tags, points"
+                    queryDef.SubFields = "points.Shape,points.SpotID,Tags.SpotID,Tags.type"
+                    queryDef.WhereClause = """Tags"".""SpotID"" = ""points"".""SpotID"""
+                    cur = queryDef.Evaluate()
+                    ptsRow = cur.NextRow()
+                Catch ex As Exception
+                    Debug.Print(ex.ToString)
+                    Debug.Print("Points query definition exception")
+                End Try
+                If ptsRow IsNot Nothing Then
+                    'If the query returns a result Make Query Table 
+                    makeQTable.in_table = "Tags;" + envPath + "\pointsVIEW"
+                    makeQTable.out_table = envPath + "\Tags_Points"
+                    makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                    geoproc.AddOutputsToMap = False
+                    makeQTable.in_field = "points.Shape;points.SpotID;" + queryFields
+                    makeQTable.where_clause = """Tags"".""SpotID"" = ""points"".""SpotID"""
+                    Try
+                        geoproc.Execute(makeQTable, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("MakeQueryTable Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                    'Copy Features to Save to Database
+                    geoproc.AddOutputsToMap = True
+                    copyFeat.in_features = envPath + "\Tags_Points"
+                    copyFeat.out_feature_class = envPath + "\Pts_Tags"
+                    Try
+                        geoproc.Execute(copyFeat, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Copy Features Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                End If
+            End If
+            If geoproc.Exists(envPath + "\lines", dt) Then
+                'Make Table View 
+                makeTableView.in_table = envPath + "\lines"
+                makeTableView.out_view = envPath + "\linesVIEW"
+                geoproc.AddOutputsToMap = False
+                Try
+                    geoproc.Execute(makeTableView, Nothing)
                     Console.WriteLine(geoproc.GetMessages(sev))
                 Catch ex As Exception
-                    Debug.Print("Copy Features Exception Caught")
+                    Console.WriteLine(ex)
+                End Try
+                'Check if the Query will result in any records returned 
+                Dim linesRow As IRow = Nothing
+                Try
+                    queryDef.Tables = "Tags, lines"
+                    queryDef.SubFields = "lines.Shape,lines.SpotID,Tags.SpotID,Tags.type"
+                    queryDef.WhereClause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
+                    cur = queryDef.Evaluate()
+                    linesRow = cur.NextRow()
+                Catch ex As Exception
+                    Debug.Print(ex.ToString)
+                    Debug.Print("Lines query defintion exception")
+                End Try
+                If linesRow IsNot Nothing Then
+                    'If the query returns a result Make Query Table
+                    makeQTable.in_table = "Tags;" + envPath + "\linesVIEW"
+                    makeQTable.out_table = envPath + "\Tags_Lines"
+                    makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                    geoproc.AddOutputsToMap = False
+                    makeQTable.in_field = "lines.Shape;lines.SpotID;" + queryFields
+                    makeQTable.where_clause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
+                    Try
+                        geoproc.Execute(makeQTable, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("MakeQueryTable Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                    'Copy Features to Database
+                    geoproc.AddOutputsToMap = True
+                    copyFeat.in_features = envPath + "\Tags_Lines"
+                    copyFeat.out_feature_class = envPath + "\Lines_Tags"
+                    Try
+                        geoproc.Execute(copyFeat, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Copy Features Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                End If
+            End If
+            If geoproc.Exists(envPath + "\polygons", dt) Then
+                'Make Table View
+                makeTableView.in_table = envPath + "\polygons"
+                makeTableView.out_view = envPath + "\polygonsVIEW"
+                geoproc.AddOutputsToMap = False
+                Try
+                    geoproc.Execute(makeTableView, Nothing)
+                    Console.WriteLine(geoproc.GetMessages(sev))
+                Catch ex As Exception
                     Console.WriteLine(ex.ToString)
                 End Try
+                'Check if the Query will result in any records returned 
+                Dim polyRow As IRow = Nothing
+                Try
+                    queryDef.Tables = "Tags, polygons"
+                    queryDef.SubFields = "polygons.Shape,polygons.SpotID,Tags.SpotID,Tags.type"
+                    queryDef.WhereClause = """Tags"".""SpotID"" = ""polygons"".""SpotID"""
+                    cur = queryDef.Evaluate()
+                    polyRow = cur.NextRow()
+                Catch ex As Exception
+                    Debug.Print(ex.ToString)
+                    Debug.Print("Polygon query definition exception")
+                End Try
+                If polyRow IsNot Nothing Then
+                    'If the query returns a result Make Query Table  
+                    makeQTable.in_table = "Tags;" + envPath + "\polygonsVIEW"
+                    makeQTable.out_table = envPath + "\Tags_Polygons"
+                    makeQTable.in_key_field_option = "NO_KEY_FIELD"
+                    geoproc.AddOutputsToMap = False
+                    makeQTable.in_field = "polygons.Shape;polygons.SpotID;" + queryFields
+                    makeQTable.where_clause = """Tags"".""SpotID"" = ""polygons"".""SpotID"""
+                    Try
+                        geoproc.Execute(makeQTable, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                    'Save Features to Database
+                    geoproc.AddOutputsToMap = True
+                    copyFeat.in_features = envPath + "\Tags_Polygons"
+                    copyFeat.out_feature_class = envPath + "\Polygons_Tags"
+                    Try
+                        geoproc.Execute(copyFeat, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Copy Features Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                End If
             End If
         End If
-        If geoproc.Exists(envPath + "\lines", dt) Then
-            'Make Table View 
-            makeTableView.in_table = envPath + "\lines"
-            makeTableView.out_view = envPath + "\linesVIEW"
-            geoproc.AddOutputsToMap = False
-            Try
-                geoproc.Execute(makeTableView, Nothing)
-                Console.WriteLine(geoproc.GetMessages(sev))
-            Catch ex As Exception
-                Console.WriteLine(ex)
-            End Try
-            'Check if the Query will result in any records returned 
-            Dim linesRow As IRow = Nothing
-            Try
-                queryDef.Tables = "Tags, lines"
-                queryDef.SubFields = "lines.Shape,lines.SpotID,Tags.SpotID,Tags.type"
-                queryDef.WhereClause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
-                cur = queryDef.Evaluate()
-                linesRow = cur.NextRow()
-            Catch ex As Exception
-                Debug.Print(ex.ToString)
-                Debug.Print("Lines query defintion exception")
-            End Try
-            If linesRow IsNot Nothing Then
-                'If the query returns a result Make Query Table
-                makeQTable.in_table = "Tags;" + envPath + "\linesVIEW"
-                makeQTable.out_table = envPath + "\Tags_Lines"
-                makeQTable.in_key_field_option = "NO_KEY_FIELD"
-                geoproc.AddOutputsToMap = False
-                makeQTable.in_field = "lines.Shape;lines.SpotID;" + queryFields
-                makeQTable.where_clause = """Tags"".""SpotID"" = ""lines"".""SpotID"""
-                Try
-                    geoproc.Execute(makeQTable, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Debug.Print("MakeQueryTable Exception Caught")
-                    Console.WriteLine(ex.ToString)
-                End Try
-                'Copy Features to Database
-                geoproc.AddOutputsToMap = True
-                copyFeat.in_features = envPath + "\Tags_Lines"
-                copyFeat.out_feature_class = envPath + "\Lines_Tags"
-                Try
-                    geoproc.Execute(copyFeat, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Debug.Print("Copy Features Exception Caught")
-                    Console.WriteLine(ex.ToString)
-                End Try
-            End If
-        End If
-        If geoproc.Exists(envPath + "\polygons", dt) Then
-            'Make Table View
-            makeTableView.in_table = envPath + "\polygons"
-            makeTableView.out_view = envPath + "\polygonsVIEW"
-            geoproc.AddOutputsToMap = False
-            Try
-                geoproc.Execute(makeTableView, Nothing)
-                Console.WriteLine(geoproc.GetMessages(sev))
-            Catch ex As Exception
-                Console.WriteLine(ex.ToString)
-            End Try
-            'Check if the Query will result in any records returned 
-            Dim polyRow As IRow = Nothing
-            Try
-                queryDef.Tables = "Tags, polygons"
-                queryDef.SubFields = "polygons.Shape,polygons.SpotID,Tags.SpotID,Tags.type"
-                queryDef.WhereClause = """Tags"".""SpotID"" = ""polygons"".""SpotID"""
-                cur = queryDef.Evaluate()
-                polyRow = cur.NextRow()
-            Catch ex As Exception
-                Debug.Print(ex.ToString)
-                Debug.Print("Polygon query definition exception")
-            End Try
-            If polyRow IsNot Nothing Then
-                'If the query returns a result Make Query Table  
-                makeQTable.in_table = "Tags;" + envPath + "\polygonsVIEW"
-                makeQTable.out_table = envPath + "\Tags_Polygons"
-                makeQTable.in_key_field_option = "NO_KEY_FIELD"
-                geoproc.AddOutputsToMap = False
-                makeQTable.in_field = "polygons.Shape;polygons.SpotID;" + queryFields
-                makeQTable.where_clause = """Tags"".""SpotID"" = ""polygons"".""SpotID"""
-                Try
-                    geoproc.Execute(makeQTable, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Console.WriteLine(ex.ToString)
-                End Try
-                'Save Features to Database
-                geoproc.AddOutputsToMap = True
-                copyFeat.in_features = envPath + "\Tags_Polygons"
-                copyFeat.out_feature_class = envPath + "\Polygons_Tags"
-                Try
-                    geoproc.Execute(copyFeat, Nothing)
-                    Console.WriteLine(geoproc.GetMessages(sev))
-                Catch ex As Exception
-                    Debug.Print("Copy Features Exception Caught")
-                    Console.WriteLine(ex.ToString)
-                End Try
-            End If
         End If
         'Activate any existing hyperlinks for each layer with "self" field and change required fields
         dt = "self"
