@@ -2472,7 +2472,8 @@ Public Class Download
             dt = "SpotID"
             Dim makeQTable As ESRI.ArcGIS.DataManagementTools.MakeQueryTable = New ESRI.ArcGIS.DataManagementTools.MakeQueryTable()
             Dim makeTableView As ESRI.ArcGIS.DataManagementTools.MakeTableView = New ESRI.ArcGIS.DataManagementTools.MakeTableView()
-            Dim copyFeat As ESRI.ArcGIS.DataManagementTools.CopyFeatures = New ESRI.ArcGIS.DataManagementTools.CopyFeatures()
+                Dim copyFeat As ESRI.ArcGIS.DataManagementTools.CopyFeatures = New ESRI.ArcGIS.DataManagementTools.CopyFeatures()
+                Dim delIdent As ESRI.ArcGIS.DataManagementTools.DeleteIdentical = New ESRI.ArcGIS.DataManagementTools.DeleteIdentical()
             Dim queryFields As String = ""
             For Each field In tagFieldsSplit
                 queryFields += "Tags." + field + ";"
@@ -2508,7 +2509,7 @@ Public Class Download
                     makeQTable.in_table = "Tags;" + envPath + "\pointsVIEW"
                     makeQTable.out_table = envPath + "\Tags_Points"
                     makeQTable.in_key_field_option = "NO_KEY_FIELD"
-                    geoproc.AddOutputsToMap = False
+                        geoproc.AddOutputsToMap = False
                     makeQTable.in_field = "points.Shape;points.SpotID;" + queryFields
                     makeQTable.where_clause = """Tags"".""SpotID"" = ""points"".""SpotID"""
                     Try
@@ -2518,7 +2519,7 @@ Public Class Download
                         Debug.Print("MakeQueryTable Exception Caught")
                         Console.WriteLine(ex.ToString)
                     End Try
-                    'Copy Features to Save to Database
+                        'Copy Features to Save to Database
                     geoproc.AddOutputsToMap = True
                     copyFeat.in_features = envPath + "\Tags_Points"
                     copyFeat.out_feature_class = envPath + "\Pts_Tags"
@@ -2528,7 +2529,17 @@ Public Class Download
                     Catch ex As Exception
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
-                    End Try
+                        End Try
+                        'Run the Delete Identical Rows tool 
+                        delIdent.in_dataset = envPath + "\Pts_Tags"
+                        delIdent.fields = "Tags_name;Tags_SpotID"
+                        Try
+                            geoproc.Execute(delIdent, Nothing)
+                            Console.WriteLine(geoproc.GetMessages(sev))
+                        Catch ex As Exception
+                            Debug.Print("Delete Identical Exception Caught")
+                            Console.WriteLine(ex.ToString)
+                        End Try
                 End If
             End If
             If geoproc.Exists(envPath + "\lines", dt) Then
@@ -2568,7 +2579,7 @@ Public Class Download
                     Catch ex As Exception
                         Debug.Print("MakeQueryTable Exception Caught")
                         Console.WriteLine(ex.ToString)
-                    End Try
+                        End Try
                     'Copy Features to Database
                     geoproc.AddOutputsToMap = True
                     copyFeat.in_features = envPath + "\Tags_Lines"
@@ -2579,7 +2590,17 @@ Public Class Download
                     Catch ex As Exception
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
-                    End Try
+                        End Try
+                        'Run the Delete Identical Rows tool 
+                        delIdent.in_dataset = envPath + "\Lines_Tags"
+                        delIdent.fields = "Tag_name;Tags_SpotID"
+                        Try
+                            geoproc.Execute(delIdent, Nothing)
+                            Console.WriteLine(geoproc.GetMessages(sev))
+                        Catch ex As Exception
+                            Debug.Print("Delete Identical Exception Caught")
+                            Console.WriteLine(ex.ToString)
+                        End Try
                 End If
             End If
             If geoproc.Exists(envPath + "\polygons", dt) Then
@@ -2618,7 +2639,7 @@ Public Class Download
                         Console.WriteLine(geoproc.GetMessages(sev))
                     Catch ex As Exception
                         Console.WriteLine(ex.ToString)
-                    End Try
+                        End Try
                     'Save Features to Database
                     geoproc.AddOutputsToMap = True
                     copyFeat.in_features = envPath + "\Tags_Polygons"
@@ -2629,7 +2650,17 @@ Public Class Download
                     Catch ex As Exception
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
-                    End Try
+                        End Try
+                        'Run the Delete Identical Rows tool 
+                        delIdent.in_dataset = envPath + "\Polygons_Tags"
+                        delIdent.fields = "Tag_name;Tags_SpotID"
+                        Try
+                            geoproc.Execute(delIdent, Nothing)
+                            Console.WriteLine(geoproc.GetMessages(sev))
+                        Catch ex As Exception
+                            Debug.Print("Delete Identical Exception Caught")
+                            Console.WriteLine(ex.ToString)
+                        End Try
                 End If
             End If
         End If
