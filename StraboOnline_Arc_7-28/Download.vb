@@ -2450,7 +2450,7 @@ Public Class Download
                                             parts(0) = "tagID"
                                         End If
                                         fieldIndex = tagTable.FindField(parts(0))
-                                        rowBuf.Value(fieldIndex) = parts(1)
+                                        rowBuf.Value(fieldIndex) = parts(1).TrimStart
                                         Debug.Print(parts(0) + " " + parts(1))
                                     End If
                                 Next
@@ -2530,16 +2530,6 @@ Public Class Download
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
                         End Try
-                        'Run the Delete Identical Rows tool 
-                        delIdent.in_dataset = envPath + "\Pts_Tags"
-                        delIdent.fields = "Tags_name;Tags_SpotID"
-                        Try
-                            geoproc.Execute(delIdent, Nothing)
-                            Console.WriteLine(geoproc.GetMessages(sev))
-                        Catch ex As Exception
-                            Debug.Print("Delete Identical Exception Caught")
-                            Console.WriteLine(ex.ToString)
-                        End Try
                 End If
             End If
             If geoproc.Exists(envPath + "\lines", dt) Then
@@ -2591,16 +2581,6 @@ Public Class Download
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
                         End Try
-                        'Run the Delete Identical Rows tool 
-                        delIdent.in_dataset = envPath + "\Lines_Tags"
-                        delIdent.fields = "Tag_name;Tags_SpotID"
-                        Try
-                            geoproc.Execute(delIdent, Nothing)
-                            Console.WriteLine(geoproc.GetMessages(sev))
-                        Catch ex As Exception
-                            Debug.Print("Delete Identical Exception Caught")
-                            Console.WriteLine(ex.ToString)
-                        End Try
                 End If
             End If
             If geoproc.Exists(envPath + "\polygons", dt) Then
@@ -2651,19 +2631,47 @@ Public Class Download
                         Debug.Print("Copy Features Exception Caught")
                         Console.WriteLine(ex.ToString)
                         End Try
-                        'Run the Delete Identical Rows tool 
-                        delIdent.in_dataset = envPath + "\Polygons_Tags"
-                        delIdent.fields = "Tag_name;Tags_SpotID"
-                        Try
-                            geoproc.Execute(delIdent, Nothing)
-                            Console.WriteLine(geoproc.GetMessages(sev))
-                        Catch ex As Exception
-                            Debug.Print("Delete Identical Exception Caught")
-                            Console.WriteLine(ex.ToString)
-                        End Try
+                End If
+                End If
+                dt = Nothing
+                'Try running Delete Identical Rows Tool on any Tags Feature Classes created
+                If geoproc.Exists(envPath + "\Lines_Tags", dt) Then
+                    'Run the Delete Identical Rows tool 
+                    delIdent.in_dataset = envPath + "\Lines_Tags"
+                    delIdent.fields = "Tag_name;Tags_SpotID"
+                    Try
+                        geoproc.Execute(delIdent, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Delete Identical Lines Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                End If
+                If geoproc.Exists(envPath + "\Pts_Tags", dt) Then
+                    'Run the Delete Identical Rows tool 
+                    delIdent.in_dataset = envPath + "\Pts_Tags"
+                    delIdent.fields = "Tags_name;Tags_SpotID"
+                    Try
+                        geoproc.Execute(delIdent, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Delete Identical Points Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
+                End If
+                If geoproc.Exists(envPath + "\Polygons_Tags", dt) Then
+                    'Run the Delete Identical Rows tool 
+                    delIdent.in_dataset = envPath + "\Polygons_Tags"
+                    delIdent.fields = "Tag_name;Tags_SpotID"
+                    Try
+                        geoproc.Execute(delIdent, Nothing)
+                        Console.WriteLine(geoproc.GetMessages(sev))
+                    Catch ex As Exception
+                        Debug.Print("Delete Identical Polygons Exception Caught")
+                        Console.WriteLine(ex.ToString)
+                    End Try
                 End If
             End If
-        End If
         End If
         'Activate any existing hyperlinks for each layer with "self" field and change required fields
         dt = "self"

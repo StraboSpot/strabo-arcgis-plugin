@@ -152,7 +152,7 @@ Public Class Upload
             newSpot = New StringBuilder()
             'Add original geometry part 
             newSpot.Append("{" + """original_geometry"":{")
-            newSpot.Append("""type"": " + """" + geoType + """" + ",")    'This will need to be adjusted for other geometry types once in master code
+            newSpot.Append("""type"": " + """" + geoType + """" + ",")
             newSpot.Append("""coordinates"":[")
             If geoType.Equals("Point") Then
                 splitGeo = spotGeometry.Split(New Char() {" "}, 2)
@@ -167,7 +167,7 @@ Public Class Upload
             newSpot.Append("},")
             'Add geometry part
             newSpot.Append("""geometry"":{")
-            newSpot.Append("""type"": " + """" + geoType + """" + ",")    'This will need to be adjusted for other geometry types once in master code
+            newSpot.Append("""type"": " + """" + geoType + """" + ",")
             newSpot.Append("""coordinates"":[")
             If geoType.Equals("Point") Then
                 splitGeo = spotGeometry.Split(New Char() {" "}, 2)
@@ -209,6 +209,8 @@ Public Class Upload
             'Add it to wholeJson
         Else  'Begin to loop through the wholeJSON file to find the corresponding spot if esriID equals something
             For Each spot In wholeJson("features")
+                origGeom = String.Empty
+                origGeom2 = String.Empty
                 thisSpot = spot("properties")
                 origGeoType = spot("geometry")("type")
                 If origGeoType.ToString.Equals("Point") Then
@@ -243,8 +245,8 @@ Public Class Upload
                             spotGeometry = spotGeometry.TrimEnd
                             If origGeoType.ToString.Equals("Point") And geoType.Equals("Point") Then
                                 splitXY = spotGeometry.Split(New Char() {" "}, 2)
-                                spot("geometry")("coordinates")(0) = CType(splitXY(0), Double)
-                                spot("geometry")("coordinates")(1) = CType(splitXY(1), Double)
+                                spot("geometry")("coordinates")(0) = CType(splitXY(0), Decimal)
+                                spot("geometry")("coordinates")(1) = CType(splitXY(1), Decimal)
                             Else    'Works for lines or polygons
                                 splitGeo = spotGeometry.Split(New Char() {" "})
                                 Dim coordinates As JArray = New JArray()
@@ -253,8 +255,8 @@ Public Class Upload
                                     Debug.Print(xy)
                                     splitXY = xy.Split(New Char() {","}, 2)
                                     geoArr = New JArray()
-                                    geoArr.Add(CType(splitXY(0), Double))
-                                    geoArr.Add(CType(splitXY(1), Double))
+                                    geoArr.Add(CType(splitXY(0), Decimal))
+                                    geoArr.Add(CType(splitXY(1), Decimal))
                                     coordinates.Add(geoArr)
                                 Next
                                 spot("geometry")("coordinates") = coordinates
@@ -266,8 +268,6 @@ Public Class Upload
                     End If
                     Debug.Print("Original spot geometry: " + origGeom)
                     Debug.Print("User given spot geometry: " + spotGeometry)
-                    'Check if the user given geometry is different from the original geometry 
-                    origGeom = String.Empty
                     'Then compare the attribute data 
                     For Each at As KeyValuePair(Of Integer, Object) In spotAttr
                         attribute = at.Value
@@ -429,7 +429,7 @@ Public Class Upload
                                                         'Debug.Print("KVP exists")
                                                         Exit Try
                                                     Else
-                                                        sampleData(parts(0)) = parts(1)
+                                                        sampleData(chunkNum)(parts(0)) = parts(1)
                                                         Debug.Print("Changed: " + parts(0) + parts(1))
                                                         changesCount += 1
                                                     End If
@@ -574,6 +574,11 @@ Public Class Upload
         Dim fileLocation As DirectoryInfo
         Dim straboDatasetName As String = ""
         Dim sev As Object
+        Dim wholeFile As String
+        Dim fcJson As Object
+        Dim esriRows As Object
+        Dim row As Object
+        Dim parts As String()
 
         If System.IO.Directory.Exists(shpFile) Then
             For Each file As String In
@@ -609,31 +614,90 @@ Public Class Upload
                     System.IO.Directory.CreateDirectory(fileName)
                 End If
                 gp.SetEnvironmentValue("workspace", ws)
+                jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
+                Try
+                    If System.IO.Directory.Exists(jsonPath) Then
+                        System.IO.Directory.Delete(jsonPath)
+                        Debug.Print("Error: Json File already exists.")
+                    End If
+                Catch ex As Exception
+                    Debug.Print("Exception down near checking for ESRI Json file already in existence: " + ex.ToString)
+                End Try
 
-                If typeResponse.Equals(True) Then
-                    '************************GET Dataset GeoJSON****************************
+                If typeResponse.Equals(True) Then   'Native Strabo Dataset
                     Dim datasetName As String = dataset.AliasName
                     Dim datasetData As New StringBuilder()
                     Dim datasetFileName As String = ""
                     Dim datasetSplit As String()
-                    fileLocation = New DirectoryInfo(fileName)
-                    For Each File In fileLocation.GetFiles()
-                        If File IsNot Nothing Then
-                            If File.ToString.ToLower.Contains("dataset") Then
-                                datasetFileName = File.FullName
-                            End If
-                        End If
-                    Next
-                    datasetFileName = datasetFileName.Remove(datasetFileName.Length - 5, 5)
-                    datasetSplit = datasetFileName.Split(New Char() {"-"}, 2)
-                    selDatasetNum = datasetSplit(1)
-                    datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
-                    straboDatasetName = datasetSplit(0)
                     Dim wholeJson As Object
                     Dim isCreated As String
                     Dim authorization As String
                     Dim binaryauthorization As Byte()
-                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                    fileLocation = New DirectoryInfo(fileName)
+                    datasetName = dataset.AliasName
+                    If Not (datasetName.Contains("_Tags")) Then  'If the Feature Class is not full of Tags then GET dataset
+                        'Gather Dataset Data
+                        For Each File In fileLocation.GetFiles()
+                            If File IsNot Nothing Then
+                                If File.ToString.ToLower.Contains("dataset") Then
+                                    datasetFileName = File.FullName
+                                End If
+                            End If
+                        Next
+                        datasetFileName = datasetFileName.Remove(datasetFileName.Length - 5, 5)
+                        datasetSplit = datasetFileName.Split(New Char() {"-"}, 2)
+                        selDatasetNum = datasetSplit(1)
+                        datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
+                        straboDatasetName = datasetSplit(0)
+
+                        'GET Dataset GeoJSON
+                        s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                        enc = New System.Text.UTF8Encoding()
+                        s.Method = "GET"
+                        s.ContentType = "application/json"
+
+                        authorization = emailaddress + ":" + password
+                        binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                        authorization = Convert.ToBase64String(binaryauthorization)
+                        authorization = "Basic " + authorization
+                        s.Headers.Add("Authorization", authorization)
+                        Try
+                            Dim result = s.GetResponse()
+                            datastream = result.GetResponseStream()
+                            reader = New StreamReader(datastream)
+                            responseFromServer = reader.ReadToEnd()
+                            Debug.Print("Dataset wholeJson: " + responseFromServer)
+                            wholeJson = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+
+                        Catch WebException As Exception
+                            MessageBox.Show(WebException.Message)
+                        End Try
+                    End If
+
+                    '*****************UPDATE STRABO PROJECT (POST)************** 
+                    Dim rand As Random = New Random
+                    Dim randDig As String = rand.Next(1, 10)
+                    Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
+                    Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
+                    Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                    Dim prjData As String
+                    Dim projectFileName As String = ""
+                    Dim prjName As String()
+                    Dim uri As String
+                    For Each File In fileLocation.GetFiles()
+                        If File IsNot Nothing Then
+                            If File.ToString.ToLower.Contains("project") Then
+                                projectFileName = File.FullName
+                            End If
+                        End If
+                    Next
+                    projectFileName = projectFileName.Remove(projectFileName.Length - 5, 5)
+                    prjName = projectFileName.Split(New Char() {"-"}, 2)
+                    selprojectNum = prjName(1)
+                    Debug.Print("Project Number " + selprojectNum)
+
+                    'Get Project Info from Strabo
+                    s = HttpWebRequest.Create("https://strabospot.org/db/project/" + selprojectNum)
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -648,40 +712,112 @@ Public Class Upload
                         datastream = result.GetResponseStream()
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
-                        wholeJson = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                        projectJson = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
 
                     Catch WebException As Exception
                         MessageBox.Show(WebException.Message)
                     End Try
-
-                    '*****************UPDATE STRABO PROJECT (POST)************** 
-                    Dim rand As Random = New Random
-                    Dim randDig As String = rand.Next(1, 10)
-                    Dim startEpoch As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0)
-                    Dim modTimeStamp As Int64 = (DateTime.UtcNow - startEpoch).TotalMilliseconds
-                    Dim today As String = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                    Dim prjData As String
-                    Dim projectFileName As String = ""
-                    Dim prjName As String()
-                    For Each File In fileLocation.GetFiles()
-                        If File IsNot Nothing Then
-                            If File.ToString.ToLower.Contains("project") Then
-                                projectFileName = File.FullName
-                            End If
-                        End If
-                    Next
-                    projectFileName = projectFileName.Remove(projectFileName.Length - 5, 5)
-                    prjName = projectFileName.Split(New Char() {"-"}, 2)
-                    selprojectNum = prjName(1)
-                    Debug.Print("Project Number " + selprojectNum)
-                    sr = New StreamReader(fileName + "\project-" + selprojectNum + ".json")
-                    projectFile = File.ReadAllText(fileName + "\project-" + selprojectNum + ".json")
-                    projectJson = New JavaScriptSerializer().Deserialize(Of Object)(projectFile)
                     projectJson("modified_timestamp") = modTimeStamp    'Signal updating project to the database
-                    '********************FIGURE OUT HOW TO RESAVE or OVERWRITE THIS INFO TO ORIGINAL FILE*************************
-                    '********************LATER ADD IN PARSER FOR CHANGES IN THE TAGS INFO*****************************************
+
+                    'Run Tags(Features) to Json for comparison with projectJson  
+                    If (datasetName.Contains("_Tags")) Then
+                        Debug.Print("Converting Tags Feature Class")
+                        'Execute Features to Json on the Tags Feature Class
+                        featToJson.in_features = ws + "\" + dataset.AliasName
+                        featToJson.out_json_file = jsonPath
+                        featToJson.format_json = "FORMATTED"
+                        sev = Nothing
+                        Try
+                            gp.Execute(featToJson, Nothing)
+                            Console.WriteLine(gp.GetMessages(sev))
+
+                        Catch ex As Exception
+                            Console.WriteLine(gp.GetMessages(sev))
+                        End Try
+                        'Compare with the original project JSON 
+                        sr = New StreamReader(jsonPath)
+                        wholeFile = File.ReadAllText(jsonPath)
+                        fcJson = New JavaScriptSerializer().Deserialize(Of Object)(wholeFile)
+                        esriRows = fcJson("features")
+                        Dim tagkvp As String = ""
+                        Dim val As String = ""
+                        Dim modifiedTags As String = ""
+                        Dim esriTagID As String = ""
+                        Dim origTag As Object
+                        Dim tagNum As Integer = 0
+                        For Each tg In esriRows
+                            row = tg("attributes")
+                            esriTagID = CType(row("Tags_tagID"), String)
+                            origTag = projectJson("tags")
+                            For Each straboTag In origTag
+                                If (esriTagID.Equals(straboTag("id").ToString)) And (Not modifiedTags.Contains(esriTagID)) Then
+                                    For Each kvp In row
+                                        tagkvp = kvp.ToString().Trim("[", "]").Trim
+                                        parts = tagkvp.Split(New Char() {","}, 2)
+                                        If String.IsNullOrEmpty(parts(1)) Then
+                                            Continue For
+                                        End If
+                                        If parts(0).Equals("OBJECTID") Or parts(0).Contains("_SpotID") Or parts(0).Contains("_tagID") Then Continue For
+                                        If origTag.TryGetValue(parts(0), val) Then
+                                            If String.IsNullOrEmpty(val) Then
+                                                val = ""
+                                            End If
+                                            If parts(1).Equals(val) Then
+                                                Continue For
+                                            Else
+                                                origTag(tagNum)(parts(0)) = parts(1)
+                                                modifiedTags += esriTagID   'Prevents the edits from getting re-edited later if a tag has multiple spots
+                                            End If
+                                        End If
+                                    Next
+                                End If
+                                tagNum += 1 'Go to the next Tag in the Tags Array in the Project Json
+                            Next
+                        Next
+                        'Upload the edited project Json to Strabo
+                        prjData = New JavaScriptSerializer().Serialize(projectJson)
+                        uri = "https://strabospot.org/db/project/" + selprojectNum
+                        s = HttpWebRequest.Create(uri)
+                        enc = New System.Text.UTF8Encoding()
+
+                        Debug.Print(prjData)    'Check to see if the modified timestamp updated
+                        postdatabytes = enc.GetBytes(prjData)
+                        s.Method = "POST"
+                        s.ContentType = "application/json"
+                        s.ContentLength = postdatabytes.Length
+
+                        authorization = emailaddress + ":" + password
+                        binaryauthorization = System.Text.Encoding.UTF8.GetBytes(authorization)
+                        authorization = Convert.ToBase64String(binaryauthorization)
+                        authorization = "Basic " + authorization
+                        s.Headers.Add("Authorization", authorization)
+
+                        Using stream = s.GetRequestStream()
+                            stream.Write(postdatabytes, 0, postdatabytes.Length)
+                        End Using
+
+                        Try
+                            Dim result As HttpWebResponse = CType(s.GetResponse(), HttpWebResponse)
+                            Dim statusCode As String = result.StatusCode.ToString
+                            datastream = result.GetResponseStream()
+                            reader = New StreamReader(datastream)
+                            responseFromServer = reader.ReadToEnd()
+                            Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
+                            If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
+                                MessageBox.Show("Strabo Project " + selprojectNum + " successfully updated!")
+                            Else
+                                MessageBox.Show("Error updating Strabo Project. Try your request again.")
+                            End If
+
+                        Catch WebException As Exception
+                            MessageBox.Show(WebException.Message)
+                        End Try
+                        Continue For    'Go to next Feature Dataset the user has chosen 
+                    End If
+
+                    'Upload edited Json to Strabo to begin signaling versioning
                     prjData = New JavaScriptSerializer().Serialize(projectJson)
-                    Dim uri As String = "https://strabospot.org/db/project/" + selprojectNum
+                    uri = "https://strabospot.org/db/project/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
 
@@ -708,7 +844,6 @@ Public Class Upload
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
                         Dim p As Object = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
-                        isCreated = p.ToString
                         If statusCode.Equals("Created") Or statusCode.Equals("OK") Then
                             MessageBox.Show("Strabo Project " + selprojectNum + " successfully updated!")
                         Else
@@ -794,18 +929,8 @@ Public Class Upload
                     Else
                         featToJson.in_features = ws + "\" + dataset.AliasName
                     End If
-                    jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
-                    Try
-                        If System.IO.Directory.Exists(jsonPath) Then
-                            System.IO.Directory.Delete(jsonPath)
-                            Debug.Print("Error: Json File already exists.")
-                        End If
-                    Catch ex As Exception
-                        Debug.Print("Exception down near checking for ESRI Json file already in existence: " + ex.ToString)
-                    End Try
                     featToJson.out_json_file = jsonPath
                     featToJson.format_json = "FORMATTED"
-
                     sev = Nothing
                     Try
                         gp.Execute(featToJson, Nothing)
@@ -817,17 +942,15 @@ Public Class Upload
                     'If the Json File exists this feature has been uploaded to Strabo
                     'PARSE THE NEWLY CREATED ESRIJSON FILE THEN EDIT THE ORIGINAL 
                     sr = New StreamReader(jsonPath)
-                    Dim wholeFile As String = File.ReadAllText(jsonPath)
-                    Dim fcJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(wholeFile)
-                    Dim esriRows As Object = fcJson("features")
+                    wholeFile = File.ReadAllText(jsonPath)
+                    fcJson = New JavaScriptSerializer().Deserialize(Of Object)(wholeFile)
+                    esriRows = fcJson("features")
                     Dim coord As Object
                     Dim esriID As String = String.Empty
-                    Dim row As Object
                     Dim spotAttr As New Dictionary(Of Integer, Object)
                     Dim spotGeo As New Dictionary(Of Integer, Object)
                     Dim compareID As Object
                     Dim coords As String
-                    Dim parts As String()
                     Dim newFields As New Dictionary(Of Object, Object)
                     Dim spotID As String = String.Empty
                     Dim featID As String = String.Empty
@@ -890,7 +1013,7 @@ Public Class Upload
                             Debug.Print("Only works at the beginning")
                             esriID = row("SpotID").ToString
                             spotGeo.Add(1, coords)
-                            ListBox1.Items.Add(coords)
+                            Coordinates.Items.Add(coords)
                             spotAttr.Add(1, row)
                         ElseIf row.ContainsKey("SpotID") And (Not esriID.Equals(String.Empty)) Then 'If there is already a value in esriID from last row, check to see if the new row is a continuation of the same spot
                             compareID = row("SpotID").ToString
@@ -908,26 +1031,27 @@ Public Class Upload
                                 If spotGeo.Count = 0 Then
                                     Debug.Print("Brand New Spot Geometries")
                                     spotGeo.Add(1, coords)
-                                    ListBox1.Items.Add(coords)
+                                    Coordinates.Items.Add(coords)
                                 ElseIf spotGeo.ContainsValue(coords) Then
                                     Continue For
                                     Debug.Print("Same geometry as last")
                                 Else
                                     Debug.Print("Different geometries for the same spot's data")
                                     spotGeo.Add(spotGeo.Count + 1, coords)
-                                    ListBox1.Items.Add(coords)
+                                    Coordinates.Items.Add(coords)
                                 End If
                             Else
                                 'If the row will be treated as a new spot then send old spot info to compare function 
                                 'After that, add current row info to the cleared out dictionaries and reassign the esriID
-                                If ListBox1.Items.Count > 1 Then
-                                    ListBox1.Visible = True
+                                If Coordinates.Items.Count > 1 Then
+                                    Coordinates.Visible = True
                                 Else    'Would this ever be because there are zero items/geometries?
                                     spotGeometry = spotGeo(1).ToString
                                 End If
+                                Debug.Print("The geometry passed to the compare function: " + spotGeometry)
                                 Debug.Print("******************SEND TO COMPARE FUNCTION******************")
                                 wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
-                                ListBox1.Items.Clear()
+                                Coordinates.Items.Clear()
                                 spotGeo.Clear()
                                 spotAttr.Clear()
                                 spotAttr.Add(1, row)
@@ -938,8 +1062,8 @@ Public Class Upload
                         End If
                     Next
                     'Catch the very last attribute in the ESRIJson 
-                    If ListBox1.Items.Count > 1 Then
-                        ListBox1.Visible = True
+                    If Coordinates.Items.Count > 1 Then
+                        Coordinates.Visible = True
                     Else    'Would this ever be because there are zero items/geometries?
                         spotGeometry = spotGeo(1).ToString
                     End If
@@ -950,15 +1074,19 @@ Public Class Upload
                     'Modified timestamps get changed within the Compare Function if appropriate 
                     'Need to remove the "self" and "original_geometry" objects from the JSON before uploading to Strabo
                     Dim editedFile As String = JsonConvert.SerializeObject(wholeJson)
+                    Debug.Print("Through the Compare Function: " + editedFile)
                     Dim jWholeJson As JObject = New JObject()
                     jWholeJson = JObject.Parse(editedFile)
                     Dim jProperties As JObject = New JObject()
                     Dim jImages As JArray = New JArray()
                     Dim img As JToken
+                    Dim self As JToken
                     For Each spot As JObject In jWholeJson("features")
                         spot.Property("original_geometry").Remove()
                         jProperties = spot("properties")
-                        jProperties.Property("self").Remove()
+                        If jProperties.TryGetValue("self", self) Then
+                            jProperties.Property("self").Remove()
+                        End If
                         If jProperties.TryGetValue("images", img) Then
                             jImages = jProperties("images")
                             For Each i As JObject In jImages
@@ -1087,6 +1215,8 @@ Public Class Upload
                     'Start the default browser to finish the shapefile upload
                     Process.Start(getDefaultBrowser, "https://strabospot.org/loadarcshapefile?arcid=" + arcid)
                 End Using
+
+                Me.Close()  'Close the Upload Dialog Box
             End If
 
         ElseIf RadioButton3.Checked Then        'Add a new dataset to the original project 
@@ -1130,6 +1260,15 @@ Public Class Upload
                         Console.WriteLine(gp.GetMessages(sev))
                     End Try
                 End If
+                jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
+                Try
+                    If System.IO.Directory.Exists(jsonPath) Then
+                        System.IO.Directory.Delete(jsonPath)
+                        Debug.Print("Error: Json File already exists.")
+                    End If
+                Catch ex As Exception
+                    Debug.Print("Exception down near checking for ESRI Json file already in existence: " + ex.ToString)
+                End Try
 
                 If typeResponse.Equals(True) Then
                     'Update project, Create New Dataset, Add Dataset to the Original Project, Update Dataset
@@ -1353,39 +1492,29 @@ Public Class Upload
                     Else
                         featToJson.in_features = ws + "\" + dataset.AliasName
                     End If
-                    jsonPath = fileName + "\" + featLayer.Name + "toJson.json"
-                    If Not System.IO.Directory.Exists(jsonPath) Then
-                        featToJson.out_json_file = jsonPath
-                        featToJson.format_json = "FORMATTED"
+                    featToJson.out_json_file = jsonPath
+                    featToJson.format_json = "FORMATTED"
+                    sev = Nothing
+                    Try
+                        gp.Execute(featToJson, Nothing)
+                        Console.WriteLine(gp.GetMessages(sev))
 
-                        sev = Nothing
-                        Try
-                            gp.Execute(featToJson, Nothing)
-                            Console.WriteLine(gp.GetMessages(sev))
-
-                        Catch ex As Exception
-                            Console.WriteLine(gp.GetMessages(sev))
-                        End Try
-                        'If the Json File exists this feature has been uploaded to Strabo
-                    Else
-                        MessageBox.Show("Error: Json File already exists.")
-                        Continue For
-                    End If
+                    Catch ex As Exception
+                        Console.WriteLine(gp.GetMessages(sev))
+                    End Try
 
                     'PARSE THE NEWLY CREATED ESRIJSON FILE THEN FIND AND EDIT THE ORIGINAL JSON FILE
                     'Set up GeoJson StringBuilder 
                     sr = New StreamReader(jsonPath)
-                    Dim wholeFile As String = File.ReadAllText(jsonPath)
-                    Dim fcJson As Object = New JavaScriptSerializer().Deserialize(Of Object)(wholeFile)
-                    Dim esriRows As Object = fcJson("features")
+                    wholeFile = File.ReadAllText(jsonPath)
+                    fcJson = New JavaScriptSerializer().Deserialize(Of Object)(wholeFile)
+                    esriRows = fcJson("features")
                     Dim coord As Object
                     Dim esriID As String = String.Empty
-                    Dim row As Object
                     Dim spotAttr As New Dictionary(Of Integer, Object)
                     Dim spotGeo As New Dictionary(Of Integer, Object)
                     Dim compareID As Object
                     Dim coords As String
-                    Dim parts As String()
                     Dim newFields As New Dictionary(Of Object, Object)
                     Dim spotID As String = String.Empty
                     Dim featID As String = String.Empty
@@ -1449,7 +1578,7 @@ Public Class Upload
                             Debug.Print("Only works at the beginning")
                             esriID = row("SpotID").ToString
                             spotGeo.Add(1, coords)
-                            ListBox1.Items.Add(coords)
+                            Coordinates.Items.Add(coords)
                             spotAttr.Add(1, row)
                         ElseIf row.ContainsKey("SpotID") And (Not esriID.Equals(String.Empty)) Then 'If there is already a value in esriID from last row, check to see if the new row is a continuation of the same spot
                             compareID = row("SpotID").ToString
@@ -1467,26 +1596,26 @@ Public Class Upload
                                 If spotGeo.Count = 0 Then
                                     Debug.Print("Brand New Spot Geometries")
                                     spotGeo.Add(1, coords)
-                                    ListBox1.Items.Add(coords)
+                                    Coordinates.Items.Add(coords)
                                 ElseIf spotGeo.ContainsValue(coords) Then
                                     Continue For
                                     Debug.Print("Same geometry as last")
                                 Else
                                     Debug.Print("Different geometries for the same spot's data")
                                     spotGeo.Add(spotGeo.Count + 1, coords)
-                                    ListBox1.Items.Add(coords)
+                                    Coordinates.Items.Add(coords)
                                 End If
                             Else
                                 'If the row will be treated as a new spot then send old spot info to compare function 
                                 'After that, add current row info to the cleared out dictionaries and reassign the esriID
-                                If ListBox1.Items.Count > 1 Then
-                                    ListBox1.Visible = True
+                                If Coordinates.Items.Count > 1 Then
+                                    Coordinates.Visible = True
                                 Else    'Would this ever be because there are zero items/geometries?
                                     spotGeometry = spotGeo(1).ToString
                                 End If
                                 Debug.Print("******************SEND TO COMPARE FUNCTION******************")
                                 wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
-                                ListBox1.Items.Clear()
+                                Coordinates.Items.Clear()
                                 spotGeo.Clear()
                                 spotAttr.Clear()
                                 spotAttr.Add(1, row)
@@ -1497,8 +1626,8 @@ Public Class Upload
                         End If
                     Next
                     'Catch the very last attribute in the ESRIJson 
-                    If ListBox1.Items.Count > 1 Then
-                        ListBox1.Visible = True
+                    If Coordinates.Items.Count > 1 Then
+                        Coordinates.Visible = True
                     Else    'Would this ever be because there are zero items/geometries?
                         spotGeometry = spotGeo(1).ToString
                     End If
@@ -1708,6 +1837,8 @@ Public Class Upload
                     'Start the default browser to finish the shapefile upload
                     Process.Start(getDefaultBrowser, "https://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
                 End Using
+
+                Me.Close() 'Close the Upload Dialog Box in ArcMap
             End If
         End If
         'Return user to the choices for uploading files
