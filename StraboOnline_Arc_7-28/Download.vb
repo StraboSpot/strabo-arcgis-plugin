@@ -6,6 +6,7 @@ Imports System.Web.Script.Serialization
 Imports System.Object
 Imports System.Windows.Forms
 Imports System.Drawing
+
 'Import necessary extensions for FileGDB-- Remember to add as refs too!
 Imports ESRI.ArcGIS.DataSourcesGDB
 Imports ESRI.ArcGIS.esriSystem
@@ -34,7 +35,7 @@ Public Class Download
     Private Sub linklabel1_Linkclicked(ByVal sender As Object, ByVal e As Windows.Forms.LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
 
         Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("https://www.strabospot.org")
+        System.Diagnostics.Process.Start("http://192.168.0.5")
 
     End Sub
 
@@ -61,7 +62,7 @@ Public Class Download
             Dim isvalid As String
 
             's = HttpWebRequest.Create("192.168.0.5")
-            s = HttpWebRequest.Create("https://strabospot.org/userAuthenticate")
+            s = HttpWebRequest.Create("http://192.168.0.5/userAuthenticate")
             enc = New System.Text.UTF8Encoding()
             postdata = "{""email"" : """ + emailaddress + """,""password"" : """ + password + """}"
             postdatabytes = enc.GetBytes(postdata)
@@ -128,7 +129,7 @@ Public Class Download
         Dim binaryauthorization As Byte()
 
         'Get Project list first- "Get My Projects" from the Strabo API
-        s = HttpWebRequest.Create("https://www.strabospot.org/db/myProjects")
+        s = HttpWebRequest.Create("http://192.168.0.5/db/myProjects")
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
         s.ContentType = "application/json"
@@ -208,7 +209,7 @@ Public Class Download
         Dim authorization As String
         Dim binaryauthorization As Byte()
 
-        Dim uri As String = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
+        Dim uri As String = "http://192.168.0.5/db/projectDatasets/" + selprojectNum
         s = HttpWebRequest.Create(uri)
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
@@ -429,11 +430,11 @@ Public Class Download
         'Here, the code will launch a For Each statement to create three separate ESRI JSON 
         'formatted files- Point, Line, and Polygon
 
-        fieldsURL = "https://www.strabospot.org/db/datasetFields/" + selDatasetNum
+        fieldsURL = "http://192.168.0.5/db/datasetFields/" + selDatasetNum
         Debug.Print(fieldsURL)
 
         'Save the original response with all geometry info to file 
-        s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+        s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
         s.ContentType = "application/json"
@@ -620,7 +621,7 @@ Public Class Download
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/point")
+                    s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum + "/point")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -909,12 +910,12 @@ Public Class Download
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
                                             'Change to https for older datasets (before server switch)
-                                            parts(1) = parts(1).Trim()
-                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
-                                            If urlSplit(0).Equals("http") Then
-                                                parts(1) = Replace(parts(1), "http", "https")
-                                            End If
-                                            Debug.Print("Image URL: " + parts(1))
+                                            'parts(1) = parts(1).Trim()
+                                            'Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            'If urlSplit(0).Equals("http") Then
+                                            '    parts(1) = Replace(parts(1), "http", "https")
+                                            'End If
+                                            'Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             Dim statusCode As String = ""
                                             Dim image As Image
@@ -923,7 +924,8 @@ Public Class Download
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
+                                                's = HttpWebRequest.Create(parts(1))
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -948,7 +950,8 @@ Public Class Download
                                             ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
                                                 imgFile = fileName + "\" + imgID + ".jpeg"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                's = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -1220,7 +1223,7 @@ Public Class Download
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/line")
+                    s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum + "/line")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -1529,12 +1532,12 @@ Public Class Download
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
                                             'Change to https for older datasets (before server switch)
-                                            parts(1) = parts(1).Trim()
-                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
-                                            If urlSplit(0).Equals("http") Then
-                                                parts(1) = Replace(parts(1), "http", "https")
-                                            End If
-                                            Debug.Print("Image URL: " + parts(1))
+                                            'parts(1) = parts(1).Trim()
+                                            'Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            'If urlSplit(0).Equals("http") Then
+                                            '    parts(1) = Replace(parts(1), "http", "https")
+                                            'End If
+                                            'Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             Dim statusCode As String = ""
                                             Dim image As Image
@@ -1543,7 +1546,8 @@ Public Class Download
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                's = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -1567,7 +1571,8 @@ Public Class Download
                                             ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
                                                 imgFile = fileName + "\" + imgID + ".jpeg"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                's = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -1838,7 +1843,7 @@ Public Class Download
                     esriJson.Append(Environment.NewLine + "]," + Environment.NewLine)
                     esriJson.Append("""features"" : [" + Environment.NewLine)
 
-                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum + "/polygon")
+                    s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum + "/polygon")
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -2167,13 +2172,13 @@ Public Class Download
                                             imgID = parts(1).Trim
                                             'Debug.Print(imgID)
                                         ElseIf parts(0).Equals("self") Then
-                                            parts(1) = parts(1).Trim
-                                            'Change to https for older datasets (before server switch)
-                                            Dim urlSplit As String() = parts(1).Split(New Char() {":"})
-                                            If urlSplit(0).Equals("http") Then
-                                                parts(1) = Replace(parts(1), "http", "https")
-                                            End If
-                                            Debug.Print("Image URL: " + parts(1))
+                                            'parts(1) = parts(1).Trim
+                                            ''Change to https for older datasets (before server switch)
+                                            'Dim urlSplit As String() = parts(1).Split(New Char() {":"})
+                                            'If urlSplit(0).Equals("http") Then
+                                            '    parts(1) = Replace(parts(1), "http", "https")
+                                            'End If
+                                            'Debug.Print("Image URL: " + parts(1))
                                             esriJson.Append("," + Environment.NewLine + """" + parts(0) + """: """ + parts(1).TrimStart + """")
                                             Dim statusCode As String = ""
                                             Dim image As Image
@@ -2182,7 +2187,8 @@ Public Class Download
                                             If RadioButton1.Checked Then
                                                 imgFile = fileName + "\" + imgID + ".tiff"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                's = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -2207,7 +2213,8 @@ Public Class Download
                                             ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
                                                 imgFile = fileName + "\" + imgID + ".jpeg"
                                                 Debug.Print(imgFile)
-                                                s = HttpWebRequest.Create(parts(1))
+                                                's = HttpWebRequest.Create(parts(1))
+                                                s = HttpWebRequest.Create("http://192.168.0.5/db/image/" + imgID)
                                                 enc = New System.Text.UTF8Encoding()
                                                 s.Method = "GET"
                                                 s.ContentType = "application/json"
@@ -2336,7 +2343,7 @@ Public Class Download
 
         'Need to get info from the Strabo Project Json which will be put into a separate table in the FGDB
         Dim prj As Object
-        s = HttpWebRequest.Create("https://strabospot.org/db/project/" + selprojectNum)
+        s = HttpWebRequest.Create("http://192.168.0.5/db/project/" + selprojectNum)
         enc = New System.Text.UTF8Encoding()
         s.Method = "GET"
         s.ContentType = "application/json"

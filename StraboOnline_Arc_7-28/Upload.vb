@@ -19,6 +19,10 @@ Imports ESRI.ArcGIS.ConversionTools
 Imports ESRI.ArcGIS.DataManagementTools
 Imports ESRI.ArcGIS.Geoprocessor
 Imports ESRI.ArcGIS.Carto
+Imports ESRI.ArcGIS.ArcMapUI
+Imports ESRI.ArcGIS.Display
+Imports ESRI.ArcGIS.DisplayUI
+Imports ESRI.ArcGIS.Framework
 Imports Newtonsoft.Json
 Imports Newtonsoft.Json.Linq
 
@@ -69,6 +73,7 @@ Public Class Upload
     Dim projectFile As String
     Dim projectJson As Object
     Dim spotGeometry As String
+    Dim spotGeo As New Dictionary(Of Integer, Object)
 
     Public Shared Function checkDatasetType(ByVal fC As IFeatureClass) As Boolean
         If fC.Fields.FindField("SpotID") >= 0 Then
@@ -579,6 +584,15 @@ Public Class Upload
         Dim esriRows As Object
         Dim row As Object
         Dim parts As String()
+        Dim pLayer As ILayer
+        Dim fidList As ArrayList = New ArrayList()
+        Dim featSel As IFeatureSelection
+        Dim qF As IQueryFilter
+        Dim whereClause As String = ""
+        Dim pUID As UID = New UID()
+        Dim pCommandItem As ICommandItem
+        Dim pActiveView As IActiveView = pMxDoc.ActiveView
+        Dim Coordinates As ListBox = New ListBox()
 
         If System.IO.Directory.Exists(shpFile) Then
             For Each file As String In
@@ -592,6 +606,7 @@ Public Class Upload
                 'Find the workspace (geodatabase) of the Selected Dataset
                 mapIndex = mapIndicesList(selDataset)
                 Debug.Print(mapIndex)
+                pLayer = pMap.Layer(mapIndex)
                 featLayer = pMap.Layer(mapIndex)
                 pGeoDataset = pMap.Layer(mapIndex)
                 spatRef = pGeoDataset.SpatialReference
@@ -651,7 +666,7 @@ Public Class Upload
                         straboDatasetName = datasetSplit(0)
 
                         'GET Dataset GeoJSON
-                        s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                        s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
                         enc = New System.Text.UTF8Encoding()
                         s.Method = "GET"
                         s.ContentType = "application/json"
@@ -697,7 +712,7 @@ Public Class Upload
                     Debug.Print("Project Number " + selprojectNum)
 
                     'Get Project Info from Strabo
-                    s = HttpWebRequest.Create("https://strabospot.org/db/project/" + selprojectNum)
+                    s = HttpWebRequest.Create("http://192.168.0.5/db/project/" + selprojectNum)
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -776,7 +791,7 @@ Public Class Upload
                         Next
                         'Upload the edited project Json to Strabo
                         prjData = New JavaScriptSerializer().Serialize(projectJson)
-                        uri = "https://strabospot.org/db/project/" + selprojectNum
+                        uri = "http://192.168.0.5/db/project/" + selprojectNum
                         s = HttpWebRequest.Create(uri)
                         enc = New System.Text.UTF8Encoding()
 
@@ -817,7 +832,7 @@ Public Class Upload
 
                     'Upload edited Json to Strabo to begin signaling versioning
                     prjData = New JavaScriptSerializer().Serialize(projectJson)
-                    uri = "https://strabospot.org/db/project/" + selprojectNum
+                    uri = "http://192.168.0.5/db/project/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
 
@@ -876,7 +891,7 @@ Public Class Upload
                     Debug.Print("Dataset Name: " + straboDatasetName)
                     Debug.Print("Dataset Number: " + selDatasetNum)
                     Debug.Print("Dataset File Name: " + datasetFileName)
-                    uri = "https://strabospot.org/db/dataset/" + selDatasetNum
+                    uri = "http://192.168.0.5/db/dataset/" + selDatasetNum
                     Debug.Print("Dataset URI")
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
@@ -948,7 +963,6 @@ Public Class Upload
                     Dim coord As Object
                     Dim esriID As String = String.Empty
                     Dim spotAttr As New Dictionary(Of Integer, Object)
-                    Dim spotGeo As New Dictionary(Of Integer, Object)
                     Dim compareID As Object
                     Dim coords As String
                     Dim newFields As New Dictionary(Of Object, Object)
@@ -957,8 +971,10 @@ Public Class Upload
                     Dim datasetID As String
                     Dim id As Int64
                     Dim name As String = ""
-                    Dim spotName As String = ""
                     Dim geoType As String = ""
+                    Dim fid As Integer = 0
+                    Dim usedIDs As String = ""
+                    Dim prevFID As Integer = 0
                     For Each i In esriRows
                         Debug.Print("New Row")
                         row = i("attributes")
@@ -993,8 +1009,18 @@ Public Class Upload
                             Next
                             geoType = "Point"
                         End If
-                        row.TryGetValue("SpotID", spotID)
-                        row.TryGetValue("FeatID", featID)
+                        Try
+                            row.TryGetValue("SpotID", spotID)
+                            row.TryGetValue("FeatID", featID)
+                            row.TryGetValue("FID", fid)
+                            Debug.Print(spotID)
+                            Debug.Print(featID)
+                            Debug.Print(fid.ToString)
+                        Catch ex As Exception
+                            If Not ex.Message.Equals("System.Collections.Generic.KeyNotFoundException") Then
+                                Debug.Print("TryGetVal Ex: " + ex.Message)
+                            End If
+                        End Try
                         If String.IsNullOrEmpty(spotID) And String.IsNullOrEmpty(featID) Then
                             'This row was added in the ArcMap session
                             'Add the row info along with a SpotID, date, time, modified timestamp to the dictionary
@@ -1005,23 +1031,29 @@ Public Class Upload
                             row("id") = id
                             row("date") = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                             row("time") = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                            row("modified_timestamp") = (DateTime.UtcNow - startEpoch).TotalMilliseconds
+                            row("modified_timestamp") = CType((DateTime.UtcNow - startEpoch).TotalMilliseconds, Int64)
                             'Send this info to be added as a new spot to wholeJson in the function 
-                            wholeJson = CompareESRItoOrig("", row, coords, geoType, wholeJson)
+                            If coords.Contains("NaN") Then
+                                MessageBox.Show("Cannot upload spot lacking geometry. Moving to next spot.")
+                                Continue For
+                            Else
+                                wholeJson = CompareESRItoOrig("", row, coords, geoType, wholeJson)
+                            End If
                         ElseIf row.ContainsKey("SpotID") And esriID.Equals(String.Empty) Then   'At the beginning 
                             '(SpotGeo and SpotAttr should both be nothing or have count = 0)
                             Debug.Print("Only works at the beginning")
                             esriID = row("SpotID").ToString
-                            spotGeo.Add(1, coords)
-                            Coordinates.Items.Add(coords)
+                            spotGeo.Add(fid, coords)
                             spotAttr.Add(1, row)
+                            prevFID = fid
                         ElseIf row.ContainsKey("SpotID") And (Not esriID.Equals(String.Empty)) Then 'If there is already a value in esriID from last row, check to see if the new row is a continuation of the same spot
-                            compareID = row("SpotID").ToString
+                            compareID = spotID
                             If compareID.Equals(esriID) Then    'If the new row is part of the same spot then add to spotAttr and spotGeo
                                 'ATTRIBUTES
                                 If spotAttr.Count = 0 Then
                                     Debug.Print("Brand New Spot Attributes")
                                     spotAttr.Add(1, row)
+                                    prevFID = fid
                                 Else
                                     Debug.Print("Adding another attribute of the same spot")
                                     spotAttr.Add(spotAttr.Count + 1, row)
@@ -1030,45 +1062,138 @@ Public Class Upload
                                 Debug.Print("New Row, Same Spot " + compareID + " " + esriID)
                                 If spotGeo.Count = 0 Then
                                     Debug.Print("Brand New Spot Geometries")
-                                    spotGeo.Add(1, coords)
-                                    Coordinates.Items.Add(coords)
+                                    spotGeo.Add(fid, coords)
                                 ElseIf spotGeo.ContainsValue(coords) Then
                                     Continue For
                                     Debug.Print("Same geometry as last")
                                 Else
                                     Debug.Print("Different geometries for the same spot's data")
-                                    spotGeo.Add(spotGeo.Count + 1, coords)
-                                    Coordinates.Items.Add(coords)
+                                    spotGeo.Add(fid, coords)
                                 End If
                             Else
                                 'If the row will be treated as a new spot then send old spot info to compare function 
                                 'After that, add current row info to the cleared out dictionaries and reassign the esriID
-                                If Coordinates.Items.Count > 1 Then
-                                    Coordinates.Visible = True
-                                Else    'Would this ever be because there are zero items/geometries?
-                                    spotGeometry = spotGeo(1).ToString
+                                If spotGeo.Count > 1 Then
+                                    'Bring up the dialog elements needed to choose the single coordinate for spot
+                                    'Set and Run Query Filter (Select By Attributes) to select all the FIDs of that spot with differing coords
+                                    featSel = featLayer
+                                    qF = New QueryFilter()
+                                    whereClause = String.Empty
+                                    For Each key In spotGeo.Keys
+                                        Debug.Print("Key: " + key.ToString)
+                                        fidList.Add(key.ToString)
+                                        whereClause += "FID = " + key.ToString + " OR "
+                                    Next
+                                    whereClause = whereClause.Remove(whereClause.Length - 4, 4)   'Get rid of last OR in the statement
+                                    Debug.Print(whereClause)
+                                    Try
+                                        qF.WhereClause = whereClause
+                                        featSel.SelectFeatures(qF, esriSelectionResultEnum.esriSelectionResultNew, False)   'Run Query 
+                                        'Bring up the Attribute Table in ArcMap-- From https://geonet.esri.com/thread/8017 
+                                        'and confirmed with http://edndoc.esri.com/arcobjects/9.1/ArcGISDevHelp/TechnicalDocuments/Guids/ArcMapIds.htm
+                                        pMxDoc.ContextItem = pLayer
+                                        pUID.Value = "esriArcMapUI.FeatureLayerContextMenuItems"
+                                        pUID.SubType = 4
+                                        pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                                        pCommandItem.Execute()
+                                        pActiveView.Refresh()
+                                    Catch ex As Exception
+                                        Debug.Print(ex.Message)
+                                    End Try
+                                    'Bring up the dialog elements needed to choose the single coordinate for spot
+                                    coordBool = False
+                                    Dim coordDialog As New CoordsDialog()
+                                    coordDialog.Coordinates.Items.AddRange(fidList.ToArray)
+                                    coordDialog.Label4.Text = featID
+                                    Do Until coordBool = True
+                                        coordDialog.ShowDialog()
+                                    Loop
+                                    Debug.Print(selFID.ToString)
+                                    spotGeometry = spotGeo(selFID).ToString()
+                                    'Once the user has made the selection for coordinates, make sure to Clear Selected Features in the layer
+                                    pUID.SubType = 12
+                                    pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                                    pCommandItem.Execute()
+                                    pActiveView.Refresh()
+                                    coordDialog.Coordinates.Items.Clear()
+                                    fidList.Clear()
+                                Else    'Use the geometry from the first row's data that was saved as prevFID 
+                                    spotGeometry = spotGeo(prevFID).ToString
                                 End If
                                 Debug.Print("The geometry passed to the compare function: " + spotGeometry)
-                                Debug.Print("******************SEND TO COMPARE FUNCTION******************")
-                                wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
-                                Coordinates.Items.Clear()
-                                spotGeo.Clear()
-                                spotAttr.Clear()
-                                spotAttr.Add(1, row)
-                                spotGeo.Add(1, coords)
-                                esriID = row("SpotID").ToString
-                                Continue For
+                                If spotGeometry.Contains("NaN") Then
+                                    MessageBox.Show("Cannot upload spot lacking geometry. Moving to next spot.")
+                                    Continue For
+                                Else
+                                    Debug.Print("******************SEND TO COMPARE FUNCTION******************")
+                                    usedIDs += esriID + " "
+                                    wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                                    spotGeo.Clear()
+                                    spotAttr.Clear()
+                                    spotAttr.Add(1, row)
+                                    spotGeo.Add(fid, coords)
+                                    prevFID = fid   'Reset prevFID var to the first row representing this new spot 
+                                    esriID = row("SpotID").ToString
+                                    Continue For
+                                End If
                             End If
                         End If
                     Next
                     'Catch the very last attribute in the ESRIJson 
-                    If Coordinates.Items.Count > 1 Then
-                        Coordinates.Visible = True
+                    If spotGeo.Count > 1 Then
+                        'Bring up the dialog elements needed to choose the single coordinate for spot
+                        'Set and Run Query Filter (Select By Attributes) to select all the FIDs of that spot with differing coords
+                        featSel = featLayer
+                        qF = New QueryFilter()
+                        whereClause = String.Empty
+                        For Each key In spotGeo.Keys
+                            Debug.Print("Key: " + key.ToString)
+                            fidList.Add(key.ToString)
+                            whereClause += "FID = " + key.ToString + " OR "
+                        Next
+                        whereClause = whereClause.Remove(whereClause.Length - 4, 4)   'Get rid of last OR in the statement
+                        Debug.Print(whereClause)
+                        Try
+                            qF.WhereClause = whereClause
+                            featSel.SelectFeatures(qF, esriSelectionResultEnum.esriSelectionResultNew, False)   'Run Query 
+                            'Bring up the Attribute Table in ArcMap-- From https://geonet.esri.com/thread/8017 
+                            'and confirmed with http://edndoc.esri.com/arcobjects/9.1/ArcGISDevHelp/TechnicalDocuments/Guids/ArcMapIds.htm
+                            pMxDoc.ContextItem = pLayer
+                            pUID.Value = "esriArcMapUI.FeatureLayerContextMenuItems"
+                            pUID.SubType = 4
+                            pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                            pCommandItem.Execute()
+                            pActiveView.Refresh()
+                        Catch ex As Exception
+                            Debug.Print(ex.Message)
+                        End Try
+                        'Bring up the dialog elements needed to choose the single coordinate for spot
+                        coordBool = False
+                        Dim coordDialog As New CoordsDialog()
+                        coordDialog.Coordinates.Items.AddRange(fidList.ToArray)
+                        coordDialog.Label4.Text = featID
+                        Do Until coordBool = True
+                            coordDialog.ShowDialog()
+                        Loop
+                        Debug.Print(selFID.ToString)
+                        spotGeometry = spotGeo(selFID).ToString()
+                        'Once the user has made the selection for coordinates, make sure to Clear Selected Features in the layer
+                        pUID.SubType = 12
+                        pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                        pCommandItem.Execute()
+                        pActiveView.Refresh()
+                        coordDialog.Coordinates.Items.Clear()
+                        fidList.Clear()
                     Else    'Would this ever be because there are zero items/geometries?
-                        spotGeometry = spotGeo(1).ToString
+                        spotGeometry = spotGeo(prevFID).ToString
                     End If
-                    Debug.Print("sending last esri spot")
-                    wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                    If spotGeometry.Contains("NaN") Then
+                        MessageBox.Show("Cannot upload spot lacking geometry. Finished parsing spots.")
+                    Else
+                        Debug.Print("sending last esri spot")
+                        usedIDs += esriID + " "
+                        wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                    End If
 
                     'IDs remain the same value since the dataset is being overwritten
                     'Modified timestamps get changed within the Compare Function if appropriate 
@@ -1081,9 +1206,13 @@ Public Class Upload
                     Dim jImages As JArray = New JArray()
                     Dim img As JToken
                     Dim self As JToken
+                    Dim fidCheck As JToken
                     For Each spot As JObject In jWholeJson("features")
                         spot.Property("original_geometry").Remove()
                         jProperties = spot("properties")
+                        If jProperties.TryGetValue("FID", fidCheck) Then
+                            jProperties.Property("FID").Remove()
+                        End If
                         If jProperties.TryGetValue("self", self) Then
                             jProperties.Property("self").Remove()
                         End If
@@ -1106,7 +1235,7 @@ Public Class Upload
                         Debug.Print("File Resaved")
                     End If
                     'Use the edited wholeJson to populate the original dataset using Strabo API: Upload Features
-                    uri = "https://www.strabospot.org/db/datasetspots/" + selDatasetNum
+                    uri = "http://192.168.0.5/db/datasetspots/" + selDatasetNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
                     postdatabytes = enc.GetBytes(editedJson)
@@ -1209,11 +1338,11 @@ Public Class Upload
                 Dim arcid As String
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("https://strabospot.org/arcupload.php", zipShp)
+                    response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "https://strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
                 End Using
 
                 Me.Close()  'Close the Upload Dialog Box
@@ -1225,6 +1354,7 @@ Public Class Upload
                 'Find the workspace (geodatabase) of the Selected Dataset
                 mapIndex = mapIndicesList(selDataset)
                 Debug.Print(mapIndex)
+                pLayer = pMap.Layer(mapIndex)
                 featLayer = pMap.Layer(mapIndex)
                 pGeoDataset = pMap.Layer(mapIndex)
                 spatRef = pGeoDataset.SpatialReference
@@ -1294,7 +1424,7 @@ Public Class Upload
                     Dim isCreated As String
                     Dim authorization As String
                     Dim binaryauthorization As Byte()
-                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                    s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -1351,7 +1481,7 @@ Public Class Upload
                         Debug.Print("File Resaved")
                     End If
                     prjData = New JavaScriptSerializer().Serialize(projectJson)
-                    Dim uri As String = "https://strabospot.org/db/project/" + selprojectNum
+                    Dim uri As String = "http://192.168.0.5/db/project/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
 
@@ -1392,7 +1522,7 @@ Public Class Upload
                     'Create New Dataset
                     rand = New Random
                     randDig = rand.Next(1, 10)
-                    uri = "https://strabospot.org/db/dataset"
+                    uri = "http://192.168.0.5/db/dataset"
                     startEpoch = New DateTime(1970, 1, 1, 0, 0, 0, 0)
                     modTimeStamp = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                     Dim seldatasetID As String = modTimeStamp.ToString + randDig
@@ -1447,7 +1577,7 @@ Public Class Upload
 
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As String
-                    uri = "https://www.strabospot.org/db/projectDatasets/" + selprojectNum
+                    uri = "http://192.168.0.5/db/projectDatasets/" + selprojectNum
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
@@ -1512,7 +1642,6 @@ Public Class Upload
                     Dim coord As Object
                     Dim esriID As String = String.Empty
                     Dim spotAttr As New Dictionary(Of Integer, Object)
-                    Dim spotGeo As New Dictionary(Of Integer, Object)
                     Dim compareID As Object
                     Dim coords As String
                     Dim newFields As New Dictionary(Of Object, Object)
@@ -1521,8 +1650,10 @@ Public Class Upload
                     Dim datasetID As String
                     Dim id As Int64
                     Dim name As String = ""
-                    Dim spotName As String = ""
                     Dim geoType As String = ""
+                    Dim usedIDs As String = ""
+                    Dim fid As Integer
+                    Dim prevFID As Integer = 0
                     For Each i In esriRows
                         Debug.Print("New Row")
                         row = i("attributes")
@@ -1558,10 +1689,17 @@ Public Class Upload
                             geoType = "Point"
                         End If
 
-                        row.TryGetValue("SpotID", spotID)
-                        row.TryGetValue("FeatID", featID)
+                        Try
+                            row.TryGetValue("SpotID", spotID)
+                            row.TryGetValue("FeatID", featID)
+                            row.TryGetValue("FID", fid)
+                        Catch ex As Exception
+                            If Not ex.Message.Equals("System.Collections.Generic.KeyNotFoundException") Then
+                                Debug.Print("TryGetVal Ex: " + ex.Message)
+                            End If
+                        End Try
                         If String.IsNullOrEmpty(spotID) And String.IsNullOrEmpty(featID) Then
-                            'This row was added in the ArcMap session
+                            'This row was added in the ArcMap session, here 1 row = 1 spot
                             'Add the row info along with a SpotID, date, time, modified timestamp to the dictionary
                             rand = New Random
                             randDig = rand.Next(1, 10)
@@ -1572,14 +1710,22 @@ Public Class Upload
                             row("time") = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                             row("modified_timestamp") = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                             'Send this info to be added as a new spot to wholeJson in the function 
-                            wholeJson = CompareESRItoOrig("", row, coords, geoType, wholeJson)
+                            usedIDs += id.ToString + " "
+                            'Send this info to be added as a new spot to wholeJson in the function 
+                            If coords.Contains("NaN") Then
+                                MessageBox.Show("Cannot upload spot lacking geometry. Moving to next spot.")
+                                Continue For
+                            Else
+                                wholeJson = CompareESRItoOrig("", row, coords, geoType, wholeJson)
+                            End If
                         ElseIf row.ContainsKey("SpotID") And esriID.Equals(String.Empty) Then   'At the beginning 
                             '(SpotGeo and SpotAttr should both be nothing or have count = 0)
                             Debug.Print("Only works at the beginning")
                             esriID = row("SpotID").ToString
-                            spotGeo.Add(1, coords)
+                            spotGeo.Add(fid, coords)
                             Coordinates.Items.Add(coords)
                             spotAttr.Add(1, row)
+                            prevFID = fid
                         ElseIf row.ContainsKey("SpotID") And (Not esriID.Equals(String.Empty)) Then 'If there is already a value in esriID from last row, check to see if the new row is a continuation of the same spot
                             compareID = row("SpotID").ToString
                             If compareID.Equals(esriID) Then    'If the new row is part of the same spot then add to spotAttr and spotGeo
@@ -1587,6 +1733,7 @@ Public Class Upload
                                 If spotAttr.Count = 0 Then
                                     Debug.Print("Brand New Spot Attributes")
                                     spotAttr.Add(1, row)
+                                    prevFID = fid
                                 Else
                                     Debug.Print("Adding another attribute of the same spot")
                                     spotAttr.Add(spotAttr.Count + 1, row)
@@ -1595,49 +1742,188 @@ Public Class Upload
                                 Debug.Print("New Row, Same Spot " + compareID + " " + esriID)
                                 If spotGeo.Count = 0 Then
                                     Debug.Print("Brand New Spot Geometries")
-                                    spotGeo.Add(1, coords)
+                                    spotGeo.Add(fid, coords)
                                     Coordinates.Items.Add(coords)
                                 ElseIf spotGeo.ContainsValue(coords) Then
                                     Continue For
                                     Debug.Print("Same geometry as last")
                                 Else
                                     Debug.Print("Different geometries for the same spot's data")
-                                    spotGeo.Add(spotGeo.Count + 1, coords)
+                                    spotGeo.Add(fid, coords)
                                     Coordinates.Items.Add(coords)
                                 End If
                             Else
                                 'If the row will be treated as a new spot then send old spot info to compare function 
                                 'After that, add current row info to the cleared out dictionaries and reassign the esriID
-                                If Coordinates.Items.Count > 1 Then
-                                    Coordinates.Visible = True
-                                Else    'Would this ever be because there are zero items/geometries?
-                                    spotGeometry = spotGeo(1).ToString
+                                If spotGeo.Count > 1 Then
+                                    'Bring up the dialog elements needed to choose the single coordinate for spot
+                                    'Set and Run Query Filter (Select By Attributes) to select all the FIDs of that spot with differing coords
+                                    featSel = featLayer
+                                    qF = New QueryFilter()
+                                    whereClause = String.Empty
+                                    For Each key In spotGeo.Keys
+                                        Debug.Print("Key: " + key.ToString)
+                                        fidList.Add(key.ToString)
+                                        whereClause += "FID = " + key.ToString + " OR "
+                                    Next
+                                    whereClause = whereClause.Remove(whereClause.Length - 4, 4)   'Get rid of last OR in the statement
+                                    Debug.Print(whereClause)
+                                    Try
+                                        qF.WhereClause = whereClause
+                                        featSel.SelectFeatures(qF, esriSelectionResultEnum.esriSelectionResultNew, False)   'Run Query 
+                                        'Bring up the Attribute Table in ArcMap-- From https://geonet.esri.com/thread/8017 
+                                        'and confirmed with http://edndoc.esri.com/arcobjects/9.1/ArcGISDevHelp/TechnicalDocuments/Guids/ArcMapIds.htm
+                                        pMxDoc.ContextItem = pLayer
+                                        pUID.Value = "esriArcMapUI.FeatureLayerContextMenuItems"
+                                        pUID.SubType = 4
+                                        pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                                        pCommandItem.Execute()
+                                        pActiveView.Refresh()
+                                    Catch ex As Exception
+                                        Debug.Print(ex.Message)
+                                    End Try
+                                    'Bring up the dialog elements needed to choose the single coordinate for spot
+                                    coordBool = False
+                                    Dim coordDialog As New CoordsDialog()
+                                    coordDialog.Coordinates.Items.AddRange(fidList.ToArray)
+                                    coordDialog.Label4.Text = featID
+                                    Do Until coordBool = True
+                                        coordDialog.ShowDialog()
+                                    Loop
+                                    Debug.Print(selFID.ToString)
+                                    spotGeometry = spotGeo(selFID).ToString()
+                                    'Once the user has made the selection for coordinates, make sure to Clear Selected Features in the layer
+                                    pUID.SubType = 12
+                                    pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                                    pCommandItem.Execute()
+                                    pActiveView.Refresh()
+                                    coordDialog.Coordinates.Items.Clear()
+                                    fidList.Clear()
+                                Else
+                                    spotGeometry = spotGeo(prevFID).ToString
                                 End If
-                                Debug.Print("******************SEND TO COMPARE FUNCTION******************")
-                                wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
-                                Coordinates.Items.Clear()
-                                spotGeo.Clear()
-                                spotAttr.Clear()
-                                spotAttr.Add(1, row)
-                                spotGeo.Add(1, coords)
-                                esriID = row("SpotID").ToString
-                                Continue For
+                                If spotGeometry.Contains("NaN") Then
+                                    MessageBox.Show("Cannot upload spot lacking geometry. Moving to next spot.")
+                                    Continue For
+                                Else
+                                    Debug.Print("******************SEND TO COMPARE FUNCTION******************")
+                                    usedIDs += esriID + " "
+                                    wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                                    spotGeo.Clear()
+                                    spotAttr.Clear()
+                                    spotAttr.Add(1, row)
+                                    spotGeo.Add(fid, coords)
+                                    prevFID = fid
+                                    esriID = row("SpotID").ToString
+                                    Continue For
+                                End If
                             End If
                         End If
                     Next
                     'Catch the very last attribute in the ESRIJson 
-                    If Coordinates.Items.Count > 1 Then
-                        Coordinates.Visible = True
-                    Else    'Would this ever be because there are zero items/geometries?
-                        spotGeometry = spotGeo(1).ToString
+                    If spotGeo.Count > 1 Then
+                        'Bring up the dialog elements needed to choose the single coordinate for spot
+                        'Set and Run Query Filter (Select By Attributes) to select all the FIDs of that spot with differing coords
+                        featSel = featLayer
+                        qF = New QueryFilter()
+                        whereClause = String.Empty
+                        For Each key In spotGeo.Keys
+                            Debug.Print("Key: " + key.ToString)
+                            fidList.Add(key.ToString)
+                            whereClause += "FID = " + key.ToString + " OR "
+                        Next
+                        whereClause = whereClause.Remove(whereClause.Length - 4, 4)   'Get rid of last OR in the statement
+                        Debug.Print(whereClause)
+                        Try
+                            qF.WhereClause = whereClause
+                            featSel.SelectFeatures(qF, esriSelectionResultEnum.esriSelectionResultNew, False)   'Run Query 
+                            'Bring up the Attribute Table in ArcMap-- From https://geonet.esri.com/thread/8017 
+                            'and confirmed with http://edndoc.esri.com/arcobjects/9.1/ArcGISDevHelp/TechnicalDocuments/Guids/ArcMapIds.htm
+                            pMxDoc.ContextItem = pLayer
+                            pUID.Value = "esriArcMapUI.FeatureLayerContextMenuItems"
+                            pUID.SubType = 4
+                            pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                            pCommandItem.Execute()
+                            pActiveView.Refresh()
+                        Catch ex As Exception
+                            Debug.Print(ex.Message)
+                        End Try
+                        'Bring up the dialog elements needed to choose the single coordinate for spot
+                        coordBool = False
+                        Dim coordDialog As New CoordsDialog()
+                        coordDialog.Coordinates.Items.AddRange(fidList.ToArray)
+                        coordDialog.Label4.Text = featID
+                        Do Until coordBool = True
+                            coordDialog.ShowDialog()
+                        Loop
+                        Debug.Print(selFID.ToString)
+                        spotGeometry = spotGeo(selFID).ToString()
+                        'Once the user has made the selection for coordinates, make sure to Clear Selected Features in the layer
+                        pUID.SubType = 12
+                        pCommandItem = My.ArcMap.Application.Document.CommandBars.Find(pUID)
+                        pCommandItem.Execute()
+                        pActiveView.Refresh()
+                        coordDialog.Coordinates.Items.Clear()
+                        fidList.Clear()
+                    Else
+                        spotGeometry = spotGeo(prevFID).ToString
                     End If
-                    Debug.Print("sending last esri spot")
-                    wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                    If spotGeometry.Contains("NaN") Then
+                        MessageBox.Show("Cannot upload spot lacking geometry. Finished parsing spots.")
+                    Else
+                        Debug.Print("sending last esri spot")
+                        usedIDs += esriID + " "
+                        wholeJson = CompareESRItoOrig(esriID, spotAttr, spotGeometry, geoType, wholeJson)
+                    End If
 
-                    'Always change the spot's ID number and all associated IDs (so it doesn't become linked to the original spot in the database)
-                    'This changes ALL IDs within the original Json------This is so the NEW Strabo dataset does not become linked  
-                    'with the original dataset in the database
-                    'Will need to be left off for the Overwriting Dataset Option (IDs will not change in that case, only modified timestamp where applicable)
+                    'Need to remove the "self" and "original_geometry" objects from the JSON before uploading to Strabo
+                    Dim editedFile As String = JsonConvert.SerializeObject(wholeJson)
+                    Dim jWholeJson As JObject = New JObject()
+                    jWholeJson = JObject.Parse(editedFile)
+                    Dim jProperties As JObject = New JObject()
+                    Dim jImages As JArray = New JArray()
+                    Dim img As JToken
+                    Dim sID As JToken
+                    Dim selfURI As JToken
+                    Dim fidCheck As JToken
+                    For Each spot As JObject In jWholeJson("features")
+                        spot.Property("original_geometry").Remove()
+                        jProperties = spot("properties")
+                        If jProperties.TryGetValue("FID", fidCheck) Then
+                            jProperties.Property("FID").Remove()
+                        End If
+                        If jProperties.TryGetValue("self", selfURI) Then
+                            jProperties.Property("self").Remove()
+                        End If
+                        If jProperties.TryGetValue("images", img) Then
+                            jImages = jProperties("images")
+                            For Each i As JObject In jImages
+                                i.Property("self").Remove()
+                            Next
+                        End If
+                    Next
+                    'If user checks the box for removing all but the ESRI parsed spots
+                    If RadioButton2.Checked Then    'Remove all spots but those parsed from the ESRI file
+                        Debug.Print("UsedIDs: " + usedIDs)
+                        Dim usedSpots As JObject = JObject.Parse("{""type"" : ""FeatureCollection"", ""features"": []}")
+                        Dim featArray As JArray = usedSpots("features")
+                        For Each spot As JObject In jWholeJson("features")
+                            jProperties = spot("properties")
+                            jProperties.TryGetValue("id", sID)
+                            Debug.Print(sID.ToString)
+                            If (usedIDs.Contains(sID.ToString)) Then
+                                Debug.Print("Found usedID, adding spot...")
+                                featArray.Add(CType(spot, JToken))
+                            End If
+                        Next
+                        editedFile = JsonConvert.SerializeObject(usedSpots)
+                    Else
+                        editedFile = JsonConvert.SerializeObject(jWholeJson)
+                    End If
+
+                    'Change the spot's ID number and all associated IDs (so it doesn't become linked to the original spot in the database)
+                    'This changes ALL IDs within the original Json
+                    'This is so the NEW Strabo dataset does not become linked with the original dataset in the database
                     Dim thisSpot As Object
                     Dim unixTime As Int64
                     Dim chunkNum As Integer
@@ -1646,13 +1932,14 @@ Public Class Upload
                     Dim oriData As Object
                     Dim aoData As Object
                     Dim blockNum As Integer
+                    wholeJson = New JavaScriptSerializer().Deserialize(Of Object)(editedFile)
                     For Each spot In wholeJson("features")
                         thisSpot = spot("properties")
                         randDig = rand.Next(1, 10)
                         unixTime = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                         Dim newID As String = unixTime + randDig
                         thisSpot("id") = CType(newID, Int64)
-                        thisSpot("self") = "https://strabospot.org/db/feature/" + newID
+                        thisSpot("self") = "http://192.168.0.5/db/feature/" + newID
                         If thisSpot.ContainsKey("3d_structures") Then
                             chunkNum = 0
                             _3dData = thisSpot("_3d_structures")
@@ -1698,25 +1985,8 @@ Public Class Upload
                             Next
                         End If
                     Next
-                    'Need to remove the "self" and "original_geometry" objects from the JSON before uploading to Strabo
-                    Dim editedFile As String = JsonConvert.SerializeObject(wholeJson)
-                    Dim jWholeJson As JObject = New JObject()
-                    jWholeJson = JObject.Parse(editedFile)
-                    Dim jProperties As JObject = New JObject()
-                    Dim jImages As JArray = New JArray()
-                    Dim img As JToken
-                    For Each spot As JObject In jWholeJson("features")
-                        spot.Property("original_geometry").Remove()
-                        jProperties = spot("properties")
-                        jProperties.Property("self").Remove()
-                        If jProperties.TryGetValue("images", img) Then
-                            jImages = jProperties("images")
-                            For Each i As JObject In jImages
-                                i.Property("self").Remove()
-                            Next
-                        End If
-                    Next
-                    Dim editedJson As String = JsonConvert.SerializeObject(jWholeJson)
+
+                    Dim editedJson As String = JsonConvert.SerializeObject(wholeJson)
                     Debug.Print("Edited Json: " + editedJson)
                     'Delete and Resave the edited Dataset Json 
                     If System.IO.File.Exists(fileName + "\dataset-" + selprojectNum + ".json") Then
@@ -1729,7 +1999,7 @@ Public Class Upload
                     End If
 
                     'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
-                    uri = "https://www.strabospot.org/db/datasetspots/" + id
+                    uri = "http://192.168.0.5/db/datasetspots/" + id
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
@@ -1831,11 +2101,11 @@ Public Class Upload
 
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("https://www.strabospot.org/arcupload.php", zipShp)
+                    response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "https://www.strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
                 End Using
 
                 Me.Close() 'Close the Upload Dialog Box in ArcMap
@@ -1843,7 +2113,6 @@ Public Class Upload
         End If
         'Return user to the choices for uploading files
         Button2.Visible = False
-        Label2.Visible = False
         Label5.Visible = False
         Label6.Visible = False
         ListBox1.Visible = False
@@ -1867,7 +2136,6 @@ Public Class Upload
         Label1.Visible = False
 
         If RadioButton1.Checked Then
-            Label2.Visible = True
             Label5.Visible = True
             ListBox1.Visible = True
 
@@ -1875,6 +2143,7 @@ Public Class Upload
             Label6.Visible = True
             Label5.Visible = True
             ListBox1.Visible = True
+            RadioButton2.Visible = True
         End If
 
         'Add the ArcMap Session Layers to the ListBox
@@ -1959,7 +2228,7 @@ Public Class Upload
         emailaddress = Username.Text
         password = PasswordBox.Text
 
-        s = HttpWebRequest.Create("https://strabospot.org/userAuthenticate")
+        s = HttpWebRequest.Create("http://192.168.0.5/userAuthenticate")
         enc = New System.Text.UTF8Encoding()
         postdata = "{""email"" : """ + emailaddress + """,""password"" : """ + password + """}"
         postdatabytes = enc.GetBytes(postdata)
@@ -2026,7 +2295,6 @@ Public Class Upload
             Label6.Visible = False
             Label5.Visible = False
             Button2.Visible = False
-            Label2.Visible = False
             ListBox1.Visible = False
             If Not ListBox1.Items.Equals(Nothing) Then
                 ListBox1.Items.Clear()
@@ -2067,14 +2335,7 @@ Public Class Upload
 
     Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
         Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("https://www.strabospot.org")
+        System.Diagnostics.Process.Start("http://192.168.0.5")
     End Sub
 
-    Private Sub Label3_Click(sender As Object, e As EventArgs) Handles Label3.Click
-
-    End Sub
-
-    Private Sub Coordinates_SelectedIndexChanged(sender As Object, e As EventArgs) Handles Coordinates.SelectedIndexChanged
-        Coordinates.SelectionMode = SelectionMode.One
-    End Sub
 End Class

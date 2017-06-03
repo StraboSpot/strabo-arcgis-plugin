@@ -32,4 +32,5 @@ C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboO
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\ESRI.ArcGIS.ADF.xml
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\ESRI.ArcGIS.ADF.Connection.Local.dll
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\ESRI.ArcGIS.ADF.Connection.Local.xml
+C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Debug\StraboOnline_Arc_7_28.CoordsDialog.resources
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Debug\StraboOnline_Arc_7-28.esriAddIn
