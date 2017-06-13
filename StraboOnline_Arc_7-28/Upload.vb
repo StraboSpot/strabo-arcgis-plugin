@@ -666,7 +666,8 @@ Public Class Upload
                         straboDatasetName = datasetSplit(0)
 
                         'GET Dataset GeoJSON
-                        s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
+                        s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                        's = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
                         enc = New System.Text.UTF8Encoding()
                         s.Method = "GET"
                         s.ContentType = "application/json"
@@ -712,7 +713,8 @@ Public Class Upload
                     Debug.Print("Project Number " + selprojectNum)
 
                     'Get Project Info from Strabo
-                    s = HttpWebRequest.Create("http://192.168.0.5/db/project/" + selprojectNum)
+                    s = HttpWebRequest.Create("https://strabospot.org/db/project/" + selprojectNum)
+                    's = HttpWebRequest.Create("http://192.168.0.5/db/project/" + selprojectNum)
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -791,7 +793,8 @@ Public Class Upload
                         Next
                         'Upload the edited project Json to Strabo
                         prjData = New JavaScriptSerializer().Serialize(projectJson)
-                        uri = "http://192.168.0.5/db/project/" + selprojectNum
+                        uri = "https://strabospot.org/db/project/" + selprojectNum
+                        'uri = "http://192.168.0.5/db/project/" + selprojectNum
                         s = HttpWebRequest.Create(uri)
                         enc = New System.Text.UTF8Encoding()
 
@@ -832,7 +835,8 @@ Public Class Upload
 
                     'Upload edited Json to Strabo to begin signaling versioning
                     prjData = New JavaScriptSerializer().Serialize(projectJson)
-                    uri = "http://192.168.0.5/db/project/" + selprojectNum
+                    uri = "https://strabospot.org/db/project/" + selprojectNum
+                    'uri = "http://192.168.0.5/db/project/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
 
@@ -891,7 +895,8 @@ Public Class Upload
                     Debug.Print("Dataset Name: " + straboDatasetName)
                     Debug.Print("Dataset Number: " + selDatasetNum)
                     Debug.Print("Dataset File Name: " + datasetFileName)
-                    uri = "http://192.168.0.5/db/dataset/" + selDatasetNum
+                    uri = "https://strabospot.org/db/dataset/" + selDatasetNum
+                    'uri = "http://192.168.0.5/db/dataset/" + selDatasetNum
                     Debug.Print("Dataset URI")
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
@@ -1235,7 +1240,8 @@ Public Class Upload
                         Debug.Print("File Resaved")
                     End If
                     'Use the edited wholeJson to populate the original dataset using Strabo API: Upload Features
-                    uri = "http://192.168.0.5/db/datasetspots/" + selDatasetNum
+                    uri = "https://strabospot.org/db/datasetspots/" + selDatasetNum
+                    'uri = "http://192.168.0.5/db/datasetspots/" + selDatasetNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
                     postdatabytes = enc.GetBytes(editedJson)
@@ -1338,11 +1344,13 @@ Public Class Upload
                 Dim arcid As String
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
+                    response = wc.UploadFile("https://strabospot.org/arcupload.php", zipShp)
+                    'response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "https://strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    'Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
                 End Using
 
                 Me.Close()  'Close the Upload Dialog Box
@@ -1424,7 +1432,8 @@ Public Class Upload
                     Dim isCreated As String
                     Dim authorization As String
                     Dim binaryauthorization As Byte()
-                    s = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
+                    s = HttpWebRequest.Create("https://strabospot.org/db/datasetspotsarc/" + selDatasetNum)
+                    's = HttpWebRequest.Create("http://192.168.0.5/db/datasetspotsarc/" + selDatasetNum)
                     enc = New System.Text.UTF8Encoding()
                     s.Method = "GET"
                     s.ContentType = "application/json"
@@ -1481,7 +1490,8 @@ Public Class Upload
                         Debug.Print("File Resaved")
                     End If
                     prjData = New JavaScriptSerializer().Serialize(projectJson)
-                    Dim uri As String = "http://192.168.0.5/db/project/" + selprojectNum
+                    Dim uri As String = "https://strabospot.org/db/project/" + selprojectNum
+                    'Dim uri As String = "http://192.168.0.5/db/project/" + selprojectNum
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
 
@@ -1522,7 +1532,8 @@ Public Class Upload
                     'Create New Dataset
                     rand = New Random
                     randDig = rand.Next(1, 10)
-                    uri = "http://192.168.0.5/db/dataset"
+                    uri = "https://strabospot.org/db/dataset"
+                    'uri = "http://192.168.0.5/db/dataset"
                     startEpoch = New DateTime(1970, 1, 1, 0, 0, 0, 0)
                     modTimeStamp = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                     Dim seldatasetID As String = modTimeStamp.ToString + randDig
@@ -1577,7 +1588,8 @@ Public Class Upload
 
                     'Then Add the New Dataset to the Project 
                     Dim addDataset As String
-                    uri = "http://192.168.0.5/db/projectDatasets/" + selprojectNum
+                    uri = "https://strabospot.org/db/projectDatasets/" + selprojectNum
+                    'uri = "http://192.168.0.5/db/projectDatasets/" + selprojectNum
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
@@ -1939,7 +1951,8 @@ Public Class Upload
                         unixTime = (DateTime.UtcNow - startEpoch).TotalMilliseconds
                         Dim newID As String = unixTime + randDig
                         thisSpot("id") = CType(newID, Int64)
-                        thisSpot("self") = "http://192.168.0.5/db/feature/" + newID
+                        thisSpot("self") = "https://strabospot.org/db/feature/" + newID
+                        'thisSpot("self") = "http://192.168.0.5/db/feature/" + newID
                         If thisSpot.ContainsKey("3d_structures") Then
                             chunkNum = 0
                             _3dData = thisSpot("_3d_structures")
@@ -1999,7 +2012,8 @@ Public Class Upload
                     End If
 
                     'Use the edited wholeJson to populate the new dataset using Strabo API: Upload Features
-                    uri = "http://192.168.0.5/db/datasetspots/" + id
+                    uri = "https://strabospot.org/db/datasetspots/" + id
+                    'uri = "http://192.168.0.5/db/datasetspots/" + id
                     Debug.Print(uri)
                     s = HttpWebRequest.Create(uri)
                     enc = New System.Text.UTF8Encoding()
@@ -2101,11 +2115,13 @@ Public Class Upload
 
                 Using wc As New System.Net.WebClient()
                     'UPLOAD the file to strabospot. ***NEED ZIPSHP TO POINT TO THE CORRECT ZIPPED FILE BEFORE TRYING****
-                    response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
+                    response = wc.UploadFile("https://strabospot.org/arcupload.php", zipShp)
+                    'response = wc.UploadFile("http://192.168.0.5/arcupload.php", zipShp)
                     'the response from the server is a token for finishing the upload
                     arcid = wc.Encoding.GetString(response)
                     'Start the default browser to finish the shapefile upload
-                    Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
+                    Process.Start(getDefaultBrowser, "https://strabospot.org/loadarcshapefile?arcid=" + arcid)
+                    'Process.Start(getDefaultBrowser, "http://192.168.0.5/loadarcshapefile?arcid=" + arcid)
                 End Using
 
                 Me.Close() 'Close the Upload Dialog Box in ArcMap
@@ -2227,8 +2243,8 @@ Public Class Upload
         'Send username and password to authenticate 
         emailaddress = Username.Text
         password = PasswordBox.Text
-
-        s = HttpWebRequest.Create("http://192.168.0.5/userAuthenticate")
+        s = HttpWebRequest.Create("https://strabospot.org/userAuthenticate")
+        's = HttpWebRequest.Create("http://192.168.0.5/userAuthenticate")
         enc = New System.Text.UTF8Encoding()
         postdata = "{""email"" : """ + emailaddress + """,""password"" : """ + password + """}"
         postdatabytes = enc.GetBytes(postdata)
@@ -2335,7 +2351,8 @@ Public Class Upload
 
     Private Sub LinkLabel1_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
         Me.LinkLabel1.LinkVisited = True
-        System.Diagnostics.Process.Start("http://192.168.0.5")
+        System.Diagnostics.Process.Start("https://strabospot.org")
+        'System.Diagnostics.Process.Start("http://192.168.0.5")
     End Sub
 
 End Class

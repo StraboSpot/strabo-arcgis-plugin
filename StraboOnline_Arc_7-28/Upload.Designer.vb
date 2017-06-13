@@ -221,7 +221,7 @@ Partial Class Upload
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.ClientSize = New System.Drawing.Size(601, 497)
+        Me.ClientSize = New System.Drawing.Size(596, 467)
         Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.ListBox1)
         Me.Controls.Add(Me.Label5)

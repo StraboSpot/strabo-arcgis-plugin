@@ -22,6 +22,8 @@ Partial Class Download
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Download))
         Me.Label1 = New System.Windows.Forms.Label()
         Me.Username = New System.Windows.Forms.TextBox()
         Me.PasswordBox = New System.Windows.Forms.TextBox()
@@ -45,10 +47,9 @@ Partial Class Download
         Me.choose = New System.Windows.Forms.Button()
         Me.browseDir = New System.Windows.Forms.Label()
         Me.SaveFileDialog1 = New System.Windows.Forms.SaveFileDialog()
-        Me.FinalInstructions = New System.Windows.Forms.Label()
-        Me.Label5 = New System.Windows.Forms.Label()
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.RadioButton2 = New System.Windows.Forms.RadioButton()
+        Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.SuspendLayout()
         '
         'Label1
@@ -68,7 +69,6 @@ Partial Class Download
         Me.Username.Name = "Username"
         Me.Username.Size = New System.Drawing.Size(296, 35)
         Me.Username.TabIndex = 4
-        Me.Username.Text = "fc"
         '
         'PasswordBox
         '
@@ -78,7 +78,6 @@ Partial Class Download
         Me.PasswordBox.PasswordChar = Global.Microsoft.VisualBasic.ChrW(42)
         Me.PasswordBox.Size = New System.Drawing.Size(296, 35)
         Me.PasswordBox.TabIndex = 5
-        Me.PasswordBox.Text = "rock"
         '
         'LogIn
         '
@@ -285,30 +284,6 @@ Partial Class Download
         Me.browseDir.Text = "Browse to the desired file location of the geodatabase"
         Me.browseDir.Visible = False
         '
-        'FinalInstructions
-        '
-        Me.FinalInstructions.AutoEllipsis = True
-        Me.FinalInstructions.AutoSize = True
-        Me.FinalInstructions.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.FinalInstructions.Location = New System.Drawing.Point(115, 407)
-        Me.FinalInstructions.Name = "FinalInstructions"
-        Me.FinalInstructions.Size = New System.Drawing.Size(409, 25)
-        Me.FinalInstructions.TabIndex = 35
-        Me.FinalInstructions.Text = "Successfully imported spots to Geodatabase! "
-        Me.FinalInstructions.UseWaitCursor = True
-        Me.FinalInstructions.Visible = False
-        '
-        'Label5
-        '
-        Me.Label5.AutoSize = True
-        Me.Label5.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label5.Location = New System.Drawing.Point(228, 407)
-        Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(185, 25)
-        Me.Label5.TabIndex = 36
-        Me.Label5.Text = "Error Loading Spots"
-        Me.Label5.Visible = False
-        '
         'RadioButton1
         '
         Me.RadioButton1.AutoSize = True
@@ -319,6 +294,9 @@ Partial Class Download
         Me.RadioButton1.TabIndex = 38
         Me.RadioButton1.TabStop = True
         Me.RadioButton1.Text = "Check to Download Images in .Tiff Format"
+        Me.ToolTip1.SetToolTip(Me.RadioButton1, "Tiff Images typically download faster, but will " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "NOT be tagged with GPS data. A " & _
+        "photo layer " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "will still be generated in ArcMap, but will need " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "further work to" & _
+        " add in geometry for photos. ")
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
         '
@@ -332,8 +310,18 @@ Partial Class Download
         Me.RadioButton2.TabIndex = 39
         Me.RadioButton2.TabStop = True
         Me.RadioButton2.Text = "Check to Download Images in .JPEG Format"
+        Me.ToolTip1.SetToolTip(Me.RadioButton2, resources.GetString("RadioButton2.ToolTip"))
         Me.RadioButton2.UseVisualStyleBackColor = True
         Me.RadioButton2.Visible = False
+        '
+        'ToolTip1
+        '
+        Me.ToolTip1.AutoPopDelay = 7000
+        Me.ToolTip1.InitialDelay = 50
+        Me.ToolTip1.IsBalloon = True
+        Me.ToolTip1.ReshowDelay = 100
+        Me.ToolTip1.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info
+        Me.ToolTip1.ToolTipTitle = "Tip:"
         '
         'Download
         '
@@ -344,8 +332,6 @@ Partial Class Download
         Me.ClientSize = New System.Drawing.Size(640, 562)
         Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.RadioButton1)
-        Me.Controls.Add(Me.Label5)
-        Me.Controls.Add(Me.FinalInstructions)
         Me.Controls.Add(Me.browseDir)
         Me.Controls.Add(Me.choose)
         Me.Controls.Add(Me.sel_Dataset)
@@ -396,8 +382,7 @@ Partial Class Download
     Friend WithEvents choose As System.Windows.Forms.Button
     Friend WithEvents browseDir As System.Windows.Forms.Label
     Friend WithEvents SaveFileDialog1 As System.Windows.Forms.SaveFileDialog
-    Friend WithEvents FinalInstructions As System.Windows.Forms.Label
-    Friend WithEvents Label5 As System.Windows.Forms.Label
     Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
     Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
+    Friend WithEvents ToolTip1 As System.Windows.Forms.ToolTip
 End Class

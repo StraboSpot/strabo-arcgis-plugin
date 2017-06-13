@@ -86,14 +86,14 @@ Partial Class CoordsDialog
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.ClientSize = New System.Drawing.Size(580, 415)
+        Me.ClientSize = New System.Drawing.Size(571, 424)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.Coordinates)
         Me.Name = "CoordsDialog"
-        Me.Text = "CoordsDialog"
+        Me.Text = "Choose Coordinates"
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
