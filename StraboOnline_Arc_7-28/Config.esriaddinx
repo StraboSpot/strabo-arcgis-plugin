@@ -3,7 +3,7 @@
   <AddInID>{3620941c-f5f5-4487-b867-d113493b6af1}</AddInID>
   <Description>Latest version of the Strabo ArcGIS plug-in which uses the StraboSpot Online API. </Description>
   <Version>1.0</Version>
-  <Image>Images\StraboOnline_Arc_7-28.png</Image>
+  <Image>Images\straboMobileLogo.png</Image>
   <Author>Emily Bunse</Author>
   <Company></Company>
   <Date>7/28/2016</Date>

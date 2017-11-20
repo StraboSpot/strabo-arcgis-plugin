@@ -41,15 +41,16 @@ Partial Class Download
         Me.FolderBrowserDialog1 = New System.Windows.Forms.FolderBrowserDialog()
         Me.Browse = New System.Windows.Forms.Button()
         Me.PathName = New System.Windows.Forms.TextBox()
-        Me.To_GDBpg = New System.Windows.Forms.Button()
         Me.BackDatasets = New System.Windows.Forms.Button()
-        Me.sel_Dataset = New System.Windows.Forms.TextBox()
         Me.choose = New System.Windows.Forms.Button()
         Me.browseDir = New System.Windows.Forms.Label()
         Me.SaveFileDialog1 = New System.Windows.Forms.SaveFileDialog()
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.RadioButton2 = New System.Windows.Forms.RadioButton()
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
+        Me.progBar = New System.Windows.Forms.ProgressBar()
+        Me.progLabel = New System.Windows.Forms.Label()
+        Me.filesSaved = New System.Windows.Forms.Label()
         Me.SuspendLayout()
         '
         'Label1
@@ -65,7 +66,7 @@ Partial Class Download
         'Username
         '
         Me.Username.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Username.Location = New System.Drawing.Point(291, 182)
+        Me.Username.Location = New System.Drawing.Point(260, 182)
         Me.Username.Name = "Username"
         Me.Username.Size = New System.Drawing.Size(296, 35)
         Me.Username.TabIndex = 4
@@ -73,7 +74,7 @@ Partial Class Download
         'PasswordBox
         '
         Me.PasswordBox.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.PasswordBox.Location = New System.Drawing.Point(291, 257)
+        Me.PasswordBox.Location = New System.Drawing.Point(260, 257)
         Me.PasswordBox.Name = "PasswordBox"
         Me.PasswordBox.PasswordChar = Global.Microsoft.VisualBasic.ChrW(42)
         Me.PasswordBox.Size = New System.Drawing.Size(296, 35)
@@ -107,7 +108,7 @@ Partial Class Download
         Me.getDatasets.AutoSize = True
         Me.getDatasets.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.getDatasets.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.getDatasets.Location = New System.Drawing.Point(254, 330)
+        Me.getDatasets.Location = New System.Drawing.Point(239, 161)
         Me.getDatasets.Name = "getDatasets"
         Me.getDatasets.Size = New System.Drawing.Size(128, 35)
         Me.getDatasets.TabIndex = 9
@@ -120,7 +121,7 @@ Partial Class Download
         Me.Datasets.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Datasets.FormattingEnabled = True
         Me.Datasets.ItemHeight = 29
-        Me.Datasets.Location = New System.Drawing.Point(194, 175)
+        Me.Datasets.Location = New System.Drawing.Point(184, 203)
         Me.Datasets.Name = "Datasets"
         Me.Datasets.Size = New System.Drawing.Size(272, 149)
         Me.Datasets.TabIndex = 15
@@ -131,7 +132,7 @@ Partial Class Download
         Me.Projects.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Projects.FormattingEnabled = True
         Me.Projects.ItemHeight = 29
-        Me.Projects.Location = New System.Drawing.Point(193, 175)
+        Me.Projects.Location = New System.Drawing.Point(184, 203)
         Me.Projects.Name = "Projects"
         Me.Projects.Size = New System.Drawing.Size(272, 149)
         Me.Projects.TabIndex = 16
@@ -167,7 +168,7 @@ Partial Class Download
         '
         Me.Label4.AutoSize = True
         Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(115, 187)
+        Me.Label4.Location = New System.Drawing.Point(84, 187)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(102, 25)
         Me.Label4.TabIndex = 21
@@ -177,7 +178,7 @@ Partial Class Download
         '
         Me.Label3.AutoSize = True
         Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label3.Location = New System.Drawing.Point(115, 262)
+        Me.Label3.Location = New System.Drawing.Point(84, 262)
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(98, 25)
         Me.Label3.TabIndex = 22
@@ -209,7 +210,7 @@ Partial Class Download
         '
         Me.Browse.AutoSize = True
         Me.Browse.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Browse.Location = New System.Drawing.Point(54, 238)
+        Me.Browse.Location = New System.Drawing.Point(84, 218)
         Me.Browse.Name = "Browse"
         Me.Browse.Size = New System.Drawing.Size(133, 45)
         Me.Browse.TabIndex = 26
@@ -220,24 +221,14 @@ Partial Class Download
         'PathName
         '
         Me.PathName.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.PathName.Location = New System.Drawing.Point(278, 242)
+        Me.PathName.Location = New System.Drawing.Point(320, 222)
         Me.PathName.Name = "PathName"
         Me.PathName.Size = New System.Drawing.Size(267, 35)
         Me.PathName.TabIndex = 27
+        Me.ToolTip1.SetToolTip(Me.PathName, "A new folder will be created in this directory and all " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "images and JSON files wi" & _
+        "ll be downloaded there. A .gdb" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "will also be created (of the same name) in this " & _
+        "location. ")
         Me.PathName.Visible = False
-        '
-        'To_GDBpg
-        '
-        Me.To_GDBpg.AutoSize = True
-        Me.To_GDBpg.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.To_GDBpg.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.To_GDBpg.Location = New System.Drawing.Point(289, 457)
-        Me.To_GDBpg.Name = "To_GDBpg"
-        Me.To_GDBpg.Size = New System.Drawing.Size(62, 35)
-        Me.To_GDBpg.TabIndex = 30
-        Me.To_GDBpg.Text = "Next"
-        Me.To_GDBpg.UseVisualStyleBackColor = True
-        Me.To_GDBpg.Visible = False
         '
         'BackDatasets
         '
@@ -252,24 +243,15 @@ Partial Class Download
         Me.BackDatasets.UseVisualStyleBackColor = True
         Me.BackDatasets.Visible = False
         '
-        'sel_Dataset
-        '
-        Me.sel_Dataset.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.sel_Dataset.Location = New System.Drawing.Point(349, 397)
-        Me.sel_Dataset.Name = "sel_Dataset"
-        Me.sel_Dataset.Size = New System.Drawing.Size(238, 35)
-        Me.sel_Dataset.TabIndex = 32
-        Me.sel_Dataset.Visible = False
-        '
         'choose
         '
         Me.choose.AutoSize = True
         Me.choose.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.choose.Location = New System.Drawing.Point(54, 393)
+        Me.choose.Location = New System.Drawing.Point(217, 363)
         Me.choose.Name = "choose"
         Me.choose.Size = New System.Drawing.Size(194, 39)
         Me.choose.TabIndex = 33
-        Me.choose.Text = "Choose Dataset"
+        Me.choose.Text = "Choose Dataset(s)"
         Me.choose.UseVisualStyleBackColor = True
         Me.choose.Visible = False
         '
@@ -288,15 +270,13 @@ Partial Class Download
         '
         Me.RadioButton1.AutoSize = True
         Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton1.Location = New System.Drawing.Point(126, 312)
+        Me.RadioButton1.Location = New System.Drawing.Point(150, 288)
         Me.RadioButton1.Name = "RadioButton1"
-        Me.RadioButton1.Size = New System.Drawing.Size(399, 29)
+        Me.RadioButton1.Size = New System.Drawing.Size(316, 29)
         Me.RadioButton1.TabIndex = 38
-        Me.RadioButton1.TabStop = True
-        Me.RadioButton1.Text = "Check to Download Images in .Tiff Format"
-        Me.ToolTip1.SetToolTip(Me.RadioButton1, "Tiff Images typically download faster, but will " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "NOT be tagged with GPS data. A " & _
-        "photo layer " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "will still be generated in ArcMap, but will need " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "further work to" & _
-        " add in geometry for photos. ")
+        Me.RadioButton1.Text = "Download Images in .Tiff Format"
+        Me.ToolTip1.SetToolTip(Me.RadioButton1, "Downloads TIFF images to the chosen Working Directory. " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "TIFF downloads are usual" & _
+        "ly faster, but do not geotag " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "the images. ")
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
         '
@@ -304,13 +284,13 @@ Partial Class Download
         '
         Me.RadioButton2.AutoSize = True
         Me.RadioButton2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton2.Location = New System.Drawing.Point(126, 346)
+        Me.RadioButton2.Location = New System.Drawing.Point(150, 322)
         Me.RadioButton2.Name = "RadioButton2"
-        Me.RadioButton2.Size = New System.Drawing.Size(424, 29)
+        Me.RadioButton2.Size = New System.Drawing.Size(341, 29)
         Me.RadioButton2.TabIndex = 39
-        Me.RadioButton2.TabStop = True
-        Me.RadioButton2.Text = "Check to Download Images in .JPEG Format"
-        Me.ToolTip1.SetToolTip(Me.RadioButton2, resources.GetString("RadioButton2.ToolTip"))
+        Me.RadioButton2.Text = "Download Images in .JPEG Format"
+        Me.ToolTip1.SetToolTip(Me.RadioButton2, "Downloads images as JPEG to the working directory." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "This option goes slower, but " & _
+        "does geotag the " & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "images for later use. ")
         Me.RadioButton2.UseVisualStyleBackColor = True
         Me.RadioButton2.Visible = False
         '
@@ -323,6 +303,36 @@ Partial Class Download
         Me.ToolTip1.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info
         Me.ToolTip1.ToolTipTitle = "Tip:"
         '
+        'progBar
+        '
+        Me.progBar.Location = New System.Drawing.Point(84, 322)
+        Me.progBar.Name = "progBar"
+        Me.progBar.Size = New System.Drawing.Size(503, 29)
+        Me.progBar.TabIndex = 40
+        Me.progBar.Visible = False
+        '
+        'progLabel
+        '
+        Me.progLabel.AutoSize = True
+        Me.progLabel.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.progLabel.Location = New System.Drawing.Point(85, 294)
+        Me.progLabel.Name = "progLabel"
+        Me.progLabel.Size = New System.Drawing.Size(57, 20)
+        Me.progLabel.TabIndex = 41
+        Me.progLabel.Text = "Label5"
+        Me.progLabel.Visible = False
+        '
+        'filesSaved
+        '
+        Me.filesSaved.AutoSize = True
+        Me.filesSaved.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.filesSaved.Location = New System.Drawing.Point(163, 218)
+        Me.filesSaved.Name = "filesSaved"
+        Me.filesSaved.Size = New System.Drawing.Size(123, 40)
+        Me.filesSaved.TabIndex = 42
+        Me.filesSaved.Text = "Files/Images" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "will be saved at: "
+        Me.filesSaved.Visible = False
+        '
         'Download
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
@@ -330,13 +340,15 @@ Partial Class Download
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(640, 562)
+        Me.Controls.Add(Me.filesSaved)
+        Me.Controls.Add(Me.choose)
+        Me.Controls.Add(Me.progLabel)
+        Me.Controls.Add(Me.progBar)
+        Me.Controls.Add(Me.getDatasets)
         Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.browseDir)
-        Me.Controls.Add(Me.choose)
-        Me.Controls.Add(Me.sel_Dataset)
         Me.Controls.Add(Me.BackDatasets)
-        Me.Controls.Add(Me.To_GDBpg)
         Me.Controls.Add(Me.PathName)
         Me.Controls.Add(Me.Browse)
         Me.Controls.Add(Me.Label2)
@@ -345,15 +357,16 @@ Partial Class Download
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.straboToGIS)
         Me.Controls.Add(Me.backForm2)
-        Me.Controls.Add(Me.Projects)
-        Me.Controls.Add(Me.Datasets)
-        Me.Controls.Add(Me.getDatasets)
         Me.Controls.Add(Me.Sel)
         Me.Controls.Add(Me.LogIn)
         Me.Controls.Add(Me.PasswordBox)
         Me.Controls.Add(Me.Username)
         Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.Datasets)
+        Me.Controls.Add(Me.Projects)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "Download"
+        Me.ShowIcon = False
         Me.Text = "Download"
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -376,13 +389,14 @@ Partial Class Download
     Friend WithEvents FolderBrowserDialog1 As System.Windows.Forms.FolderBrowserDialog
     Friend WithEvents Browse As System.Windows.Forms.Button
     Friend WithEvents PathName As System.Windows.Forms.TextBox
-    Friend WithEvents To_GDBpg As System.Windows.Forms.Button
     Friend WithEvents BackDatasets As System.Windows.Forms.Button
-    Friend WithEvents sel_Dataset As System.Windows.Forms.TextBox
     Friend WithEvents choose As System.Windows.Forms.Button
     Friend WithEvents browseDir As System.Windows.Forms.Label
     Friend WithEvents SaveFileDialog1 As System.Windows.Forms.SaveFileDialog
     Friend WithEvents RadioButton1 As System.Windows.Forms.RadioButton
     Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
     Friend WithEvents ToolTip1 As System.Windows.Forms.ToolTip
+    Friend WithEvents progBar As System.Windows.Forms.ProgressBar
+    Friend WithEvents progLabel As System.Windows.Forms.Label
+    Friend WithEvents filesSaved As System.Windows.Forms.Label
 End Class

@@ -117,7 +117,55 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="ToolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>258, 17</value>
+  </metadata>
+  <data name="RadioButton1.ToolTip" xml:space="preserve">
+    <value>This option overwrites the Strabo dataset which was downloaded. When the dataset is overwritten 
+in the StraboSpot database, the old dataset will be preserved through Versioning. This method can 
+be used to add the attributes of new feature classes created in/transferred to the original file geodatabase 
+as new Spots to a dataset in StraboSpot. Keep in mind that new field names and Strabo nested attributes will 
+not be visible on such added Spots.  </value>
+  </data>
   <metadata name="FolderBrowserDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <data name="RadioButton3.ToolTip" xml:space="preserve">
+    <value>Creates a new Strabo dataset in the same project associated
+with the downloaded dataset- does not overwrite. This has the
+option to upload only the attributes within the chosen feature
+class as Spots- i.e. all spots NOT represented in the attribute
+table are removed, but does not delete these Spots from the 
+original dataset.  </value>
+  </data>
+  <data name="RadioButton4.ToolTip" xml:space="preserve">
+    <value>This option allows for batch uploading of 'native ArcGIS'
+datasets (those not originating in StraboSpot, nor meant
+to be added to an existing Strabo dataset). The datasets
+are packaged to be passed to the Shapefile Uploader tool
+where the upload process will be completed in browser. </value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAIAEBAQAAAABAAoAQAAJgAAACAgEAAAAAQA6AIAAE4BAAAoAAAAEAAAACAAAAABAAQAAAAAAIAA
+        AAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAgAAAgAAAAICAAIAAAACAAIAAgIAAAICAgADAwMAAAAD/AAD/
+        AAAA//8A/wAAAP8A/wD//wAA////AAAAAAAAAAAAAH//j/j/jwAAf/+P+P+PAAB4iIiIiIgAAH93h3h3
+        jwAAf3eHeHePAAB4iIiIiIgAAH93h3h3jwAAf3eHeHePAAB4iIiIiIgAAH93h3h3jwAAf3eHeHePAAB4
+        iIiIgAAAAH//j/j39wAAf/+P+PdwAAB3d3d3dwAAwAEAAMABAADAAQAAwAEAAMABAADAAQAAwAEAAMAB
+        AADAAQAAwAEAAMABAADAAQAAwAEAAMADAADABwAAwA8AACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAA
+        AAAAAAAAEAAAABAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAgICAAMDAwAAAAP8AAP8AAAD/
+        /wD/AAAA/wD/AP//AAD///8A///4d5mZMzMzM5mZd///////+HeZmTMzMzOZmXf/////+IeZmZAAAAAA
+        AzmZmI///4iId5AAABEQAAAJmZmf//+IiHeQAAAREAAACZmZn///iIiIMAGZmZkRAAGZmZf//4iIiIAJ
+        mZmZmQAAmZmZ//+IiIiACZmZmZkAAJmZmf//iIiIh3mZmZmZEAAzmZn//4iIiId5mZmZmRAAM5mZ//+I
+        iIiHeZmZmZkwADOZmf//iIiIiImZmZmZEACZmZn//4iIiIiJmZmZmRAAmZmZ//+IiIiIg5mZmTMAAZmZ
+        mf//iIiIiIh3mZMAAAmZmZn//4iIiIiId5mTAAAJmZmZ//+IiIiIiHdncREJmZmZmf//iIiIiIh3Z3ER
+        CZmZmZn//4iIiIiCIid3mZmZmZmZ//+IiIiCIiJ4iIh5mZmZmf//iIiIgiIieIiIeZmZmZn//4iIiIIi
+        M4iIiImZmZmZ//+IiIhyIneIiIiJmZmZmf//iIiIciJ3iIiIiZmZmZn//4iIiIIiIoiIiIM5mZmT//+I
+        iIiCIiKIiIiDOZmZk///iIiIgiIieIiIJmmZmZj///iIiIdyIiIiIiiImZmf///4iIiHciIiIiIoiJmZ
+        n/////iIiIciIiAiiIiIn////////////4iI//////////////////+IiP////////8AAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+</value>
+  </data>
 </root>

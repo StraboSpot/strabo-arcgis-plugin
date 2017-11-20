@@ -22,6 +22,8 @@ Partial Class Upload
     'Do not modify it using the code editor.
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
+        Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Upload))
         Me.Label1 = New System.Windows.Forms.Label()
         Me.RadioButton1 = New System.Windows.Forms.RadioButton()
         Me.Button1 = New System.Windows.Forms.Button()
@@ -39,13 +41,15 @@ Partial Class Upload
         Me.back = New System.Windows.Forms.Button()
         Me.LinkLabel1 = New System.Windows.Forms.LinkLabel()
         Me.RadioButton2 = New System.Windows.Forms.RadioButton()
+        Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
+        Me.RadioButton4 = New System.Windows.Forms.RadioButton()
         Me.SuspendLayout()
         '
         'Label1
         '
         Me.Label1.AutoSize = True
         Me.Label1.Font = New System.Drawing.Font("Microsoft Sans Serif", 11.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.Location = New System.Drawing.Point(105, 95)
+        Me.Label1.Location = New System.Drawing.Point(109, 90)
         Me.Label1.Name = "Label1"
         Me.Label1.Size = New System.Drawing.Size(388, 26)
         Me.Label1.TabIndex = 0
@@ -57,17 +61,18 @@ Partial Class Upload
         Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.RadioButton1.Location = New System.Drawing.Point(136, 158)
         Me.RadioButton1.Name = "RadioButton1"
-        Me.RadioButton1.Size = New System.Drawing.Size(281, 54)
+        Me.RadioButton1.Size = New System.Drawing.Size(308, 29)
         Me.RadioButton1.TabIndex = 2
         Me.RadioButton1.TabStop = True
-        Me.RadioButton1.Text = "Update Existing Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "(Overwrites with Versioning)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
+        Me.RadioButton1.Text = "Update Existing Strabo Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
+        Me.ToolTip1.SetToolTip(Me.RadioButton1, resources.GetString("RadioButton1.ToolTip"))
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
         '
         'Button1
         '
         Me.Button1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Button1.Location = New System.Drawing.Point(252, 374)
+        Me.Button1.Location = New System.Drawing.Point(251, 312)
         Me.Button1.Name = "Button1"
         Me.Button1.Size = New System.Drawing.Size(75, 37)
         Me.Button1.TabIndex = 4
@@ -78,7 +83,7 @@ Partial Class Upload
         'Button2
         '
         Me.Button2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Button2.Location = New System.Drawing.Point(479, 405)
+        Me.Button2.Location = New System.Drawing.Point(485, 405)
         Me.Button2.Name = "Button2"
         Me.Button2.Size = New System.Drawing.Size(101, 42)
         Me.Button2.TabIndex = 8
@@ -91,7 +96,7 @@ Partial Class Upload
         Me.ListBox1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.ListBox1.FormattingEnabled = True
         Me.ListBox1.ItemHeight = 25
-        Me.ListBox1.Location = New System.Drawing.Point(178, 179)
+        Me.ListBox1.Location = New System.Drawing.Point(179, 179)
         Me.ListBox1.Name = "ListBox1"
         Me.ListBox1.Size = New System.Drawing.Size(239, 129)
         Me.ListBox1.TabIndex = 27
@@ -112,7 +117,7 @@ Partial Class Upload
         '
         Me.Label8.AutoSize = True
         Me.Label8.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label8.Location = New System.Drawing.Point(59, 264)
+        Me.Label8.Location = New System.Drawing.Point(62, 264)
         Me.Label8.Name = "Label8"
         Me.Label8.Size = New System.Drawing.Size(98, 25)
         Me.Label8.TabIndex = 34
@@ -122,7 +127,7 @@ Partial Class Upload
         '
         Me.Label9.AutoSize = True
         Me.Label9.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label9.Location = New System.Drawing.Point(59, 189)
+        Me.Label9.Location = New System.Drawing.Point(62, 189)
         Me.Label9.Name = "Label9"
         Me.Label9.Size = New System.Drawing.Size(102, 25)
         Me.Label9.TabIndex = 33
@@ -131,7 +136,7 @@ Partial Class Upload
         'PasswordBox
         '
         Me.PasswordBox.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.PasswordBox.Location = New System.Drawing.Point(235, 259)
+        Me.PasswordBox.Location = New System.Drawing.Point(238, 259)
         Me.PasswordBox.Name = "PasswordBox"
         Me.PasswordBox.PasswordChar = Global.Microsoft.VisualBasic.ChrW(42)
         Me.PasswordBox.Size = New System.Drawing.Size(296, 35)
@@ -140,7 +145,7 @@ Partial Class Upload
         'Username
         '
         Me.Username.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Username.Location = New System.Drawing.Point(235, 184)
+        Me.Username.Location = New System.Drawing.Point(238, 184)
         Me.Username.Name = "Username"
         Me.Username.Size = New System.Drawing.Size(296, 35)
         Me.Username.TabIndex = 31
@@ -149,12 +154,13 @@ Partial Class Upload
         '
         Me.RadioButton3.AutoSize = True
         Me.RadioButton3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.RadioButton3.Location = New System.Drawing.Point(136, 225)
+        Me.RadioButton3.Location = New System.Drawing.Point(136, 213)
         Me.RadioButton3.Name = "RadioButton3"
-        Me.RadioButton3.Size = New System.Drawing.Size(282, 54)
+        Me.RadioButton3.Size = New System.Drawing.Size(275, 29)
         Me.RadioButton3.TabIndex = 37
         Me.RadioButton3.TabStop = True
-        Me.RadioButton3.Text = "Create New Strabo Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "(use existing Strabo Project)"
+        Me.RadioButton3.Text = "Create New Strabo Dataset"
+        Me.ToolTip1.SetToolTip(Me.RadioButton3, resources.GetString("RadioButton3.ToolTip"))
         Me.RadioButton3.UseVisualStyleBackColor = True
         Me.RadioButton3.Visible = False
         '
@@ -162,7 +168,7 @@ Partial Class Upload
         '
         Me.Label6.AutoSize = True
         Me.Label6.Font = New System.Drawing.Font("Microsoft Sans Serif", 11.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label6.Location = New System.Drawing.Point(151, 95)
+        Me.Label6.Location = New System.Drawing.Point(149, 95)
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(296, 26)
         Me.Label6.TabIndex = 38
@@ -216,18 +222,41 @@ Partial Class Upload
         Me.RadioButton2.UseVisualStyleBackColor = True
         Me.RadioButton2.Visible = False
         '
+        'ToolTip1
+        '
+        Me.ToolTip1.AutoPopDelay = 7000
+        Me.ToolTip1.InitialDelay = 50
+        Me.ToolTip1.IsBalloon = True
+        Me.ToolTip1.ReshowDelay = 100
+        Me.ToolTip1.ToolTipIcon = System.Windows.Forms.ToolTipIcon.Info
+        Me.ToolTip1.ToolTipTitle = "Tip:"
+        '
+        'RadioButton4
+        '
+        Me.RadioButton4.AutoSize = True
+        Me.RadioButton4.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.RadioButton4.Location = New System.Drawing.Point(136, 264)
+        Me.RadioButton4.Name = "RadioButton4"
+        Me.RadioButton4.Size = New System.Drawing.Size(243, 29)
+        Me.RadioButton4.TabIndex = 48
+        Me.RadioButton4.TabStop = True
+        Me.RadioButton4.Text = "Use Shapefile Uploader"
+        Me.ToolTip1.SetToolTip(Me.RadioButton4, resources.GetString("RadioButton4.ToolTip"))
+        Me.RadioButton4.UseVisualStyleBackColor = True
+        Me.RadioButton4.Visible = False
+        '
         'Upload
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(596, 467)
-        Me.Controls.Add(Me.RadioButton2)
-        Me.Controls.Add(Me.ListBox1)
+        Me.Controls.Add(Me.RadioButton4)
+        Me.Controls.Add(Me.RadioButton3)
+        Me.Controls.Add(Me.RadioButton1)
+        Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.Label5)
         Me.Controls.Add(Me.LinkLabel1)
-        Me.Controls.Add(Me.RadioButton1)
-        Me.Controls.Add(Me.RadioButton3)
         Me.Controls.Add(Me.back)
         Me.Controls.Add(Me.LogIn)
         Me.Controls.Add(Me.Label6)
@@ -237,8 +266,11 @@ Partial Class Upload
         Me.Controls.Add(Me.Username)
         Me.Controls.Add(Me.Button2)
         Me.Controls.Add(Me.Button1)
-        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.ListBox1)
+        Me.Controls.Add(Me.RadioButton2)
+        Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "Upload"
+        Me.ShowIcon = False
         Me.Text = "Upload"
         Me.ResumeLayout(False)
         Me.PerformLayout()
@@ -261,4 +293,6 @@ Partial Class Upload
     Friend WithEvents back As System.Windows.Forms.Button
     Friend WithEvents LinkLabel1 As System.Windows.Forms.LinkLabel
     Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
+    Friend WithEvents ToolTip1 As System.Windows.Forms.ToolTip
+    Friend WithEvents RadioButton4 As System.Windows.Forms.RadioButton
 End Class

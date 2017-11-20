@@ -120,20 +120,33 @@
   <metadata name="FolderBrowserDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <metadata name="ToolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>448, 17</value>
+  </metadata>
   <metadata name="SaveFileDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>258, 17</value>
   </metadata>
-  <metadata name="ToolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>448, 17</value>
-  </metadata>
-  <metadata name="ToolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>448, 17</value>
-  </metadata>
-  <data name="RadioButton2.ToolTip" xml:space="preserve">
-    <value>*Recommended Option*
-Downloading JPEG Images is typically slower, but does
-the following: saves GPS coordinates to the file (only 
-for images associated with 'point' type spots)
-and adds a photo layer in the file gdb. </value>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        AAABAAIAEBAQAAAABAAoAQAAJgAAACAgEAAAAAQA6AIAAE4BAAAoAAAAEAAAACAAAAABAAQAAAAAAIAA
+        AAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAgAAAgAAAAICAAIAAAACAAIAAgIAAAICAgADAwMAAAAD/AAD/
+        AAAA//8A/wAAAP8A/wD//wAA////AAAAAAAAAAAAAH//j/j/jwAAf/+P+P+PAAB4iIiIiIgAAH93h3h3
+        jwAAf3eHeHePAAB4iIiIiIgAAH93h3h3jwAAf3eHeHePAAB4iIiIiIgAAH93h3h3jwAAf3eHeHePAAB4
+        iIiIgAAAAH//j/j39wAAf/+P+PdwAAB3d3d3dwAAwAEAAMABAADAAQAAwAEAAMABAADAAQAAwAEAAMAB
+        AADAAQAAwAEAAMABAADAAQAAwAEAAMADAADABwAAwA8AACgAAAAgAAAAQAAAAAEABAAAAAAAAAIAAAAA
+        AAAAAAAAEAAAABAAAAAAAAAAAACAAACAAAAAgIAAgAAAAIAAgACAgAAAgICAAMDAwAAAAP8AAP8AAAD/
+        /wD/AAAA/wD/AP//AAD///8A///4d5mZMzMzM5mZd///////+HeZmTMzMzOZmXf/////+IeZmZAAAAAA
+        AzmZmI///4iId5AAABEQAAAJmZmf//+IiHeQAAAREAAACZmZn///iIiIMAGZmZkRAAGZmZf//4iIiIAJ
+        mZmZmQAAmZmZ//+IiIiACZmZmZkAAJmZmf//iIiIh3mZmZmZEAAzmZn//4iIiId5mZmZmRAAM5mZ//+I
+        iIiHeZmZmZkwADOZmf//iIiIiImZmZmZEACZmZn//4iIiIiJmZmZmRAAmZmZ//+IiIiIg5mZmTMAAZmZ
+        mf//iIiIiIh3mZMAAAmZmZn//4iIiIiId5mTAAAJmZmZ//+IiIiIiHdncREJmZmZmf//iIiIiIh3Z3ER
+        CZmZmZn//4iIiIiCIid3mZmZmZmZ//+IiIiCIiJ4iIh5mZmZmf//iIiIgiIieIiIeZmZmZn//4iIiIIi
+        M4iIiImZmZmZ//+IiIhyIneIiIiJmZmZmf//iIiIciJ3iIiIiZmZmZn//4iIiIIiIoiIiIM5mZmT//+I
+        iIiCIiKIiIiDOZmZk///iIiIgiIieIiIJmmZmZj///iIiIdyIiIiIiiImZmf///4iIiHciIiIiIoiJmZ
+        n/////iIiIciIiAiiIiIn////////////4iI//////////////////+IiP////////8AAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+</value>
   </data>
 </root>
