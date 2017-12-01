@@ -588,7 +588,9 @@ Public Class Download
         RadioButton2.Visible = False
         straboToGIS.Visible = False
         browseDir.Visible = False
+        PathName.Visible = False
 
+        filesSaved.Text = "Files and Images will be saved at: " + Environment.NewLine + PathName.Text
         filesSaved.Visible = True
         progBar.Visible = True
         progLabel.Text = "Creating Geodatabase for " + selProject + "..."
@@ -614,8 +616,8 @@ Public Class Download
             Dim selIndex As Integer
             Dim datasetIDsList As System.Array
             datasetIDsList = datasetIDs.Split(stringSeparators, StringSplitOptions.RemoveEmptyEntries)
-            selIndex = selected.ToString()
-            Debug.Print(selIndex)
+            selIndex = CType(selected.ToString(), Integer)
+            Debug.Print(selIndex.ToString)
             selDatasetNum = datasetIDsList(selIndex)
             selDatasetNum = selDatasetNum.Trim
             Debug.Print(selDatasetNum)
@@ -630,6 +632,7 @@ Public Class Download
             Dim workspace As IWorkspace = wsF.OpenFromFile(PathName.Text + "\" + pair.Value + ".gdb", 0)
 
             selDataset = selDataset.Replace(" ", String.Empty)  'Take out any spaces in the dataset's name
+            selDataset = selDataset.Replace("-", String.Empty)
             If selDataset.Contains(".shp") Then
                 selDataset = selDataset.Replace(".shp", String.Empty)
             End If
@@ -738,7 +741,7 @@ Public Class Download
                     End If
                 Next
                 'Set up the Progress Bar and make Visible
-                If imgCount > 0 Then
+                If imgCount > 0 And (RadioButton1.Checked Or RadioButton2.Checked) Then
                     progBar.Maximum = imgCount + 3
                     progLabel.Text = "Processing Dataset: " + selDataset + "..."
                     Debug.Print("Number of Images in Dataset: " + imgCount.ToString)
@@ -779,7 +782,7 @@ Public Class Download
                         reader = New StreamReader(datastream)
                         responseFromServer = reader.ReadToEnd()
 
-                        'Debug.Print(responseFromServer)
+                        'Debug.Print("1: " + responseFromServer)
 
                         f = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
 
@@ -805,7 +808,7 @@ Public Class Download
                             reader = New StreamReader(datastream)
                             responseFromServer = reader.ReadToEnd()
 
-                            'Debug.Print(responseFromServer)
+                            'Debug.Print("2: " + responseFromServer)
 
                             sp = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
                             sp = sp("features")
@@ -816,7 +819,7 @@ Public Class Download
                     End If
 
                     If f IsNot Nothing And sp IsNot Nothing Then 'Not Null 
-
+                        Debug.Print("Begin Fields")
                         'Start the ESRI JSON formatting 
                         esriJson.Append("{" + Environment.NewLine + """displayFieldName"" : " + """" + selDataset + """" + "," + Environment.NewLine)
                         esriJson.Append("""fieldAliases"" : {" + Environment.NewLine)
@@ -1252,7 +1255,7 @@ Public Class Download
                                                 Dim timeStamp As Int64 = CType(imgID.Remove(imgID.Length - 1, 1), Int64)    'Get rid of the last digit 
                                                 Dim imgDateTime As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0).AddMilliseconds(timeStamp)
                                                 'Download the image to same file Json files are saved as a .Tiff
-                                                If RadioButton1.Checked Then
+                                                If RadioButton1.Checked And imgCount > 0 Then
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".tiff"
                                                     'Debug.Print(imgFile)
                                                     s = HttpWebRequest.Create("https://strabospot.org/db/image/" + imgID)
@@ -1278,7 +1281,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -1292,7 +1295,7 @@ Public Class Download
                                                     End Try
                                                     'Debug.Print(imgFile)
                                                     'Client.DownloadFile(parts(1), imgFile)
-                                                ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                ElseIf RadioButton2.Checked And imgCount > 0 Then    'Save to the same file as the Json files as a .JPEG
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".jpeg"
                                                     'Debug.Print(imgFile)
                                                     's = HttpWebRequest.Create(parts(1))
@@ -1317,7 +1320,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -1404,7 +1407,7 @@ Public Class Download
 
                         'Save the ESRI Formatted Json in the same folder as the Original GeoJson   
                         If (System.IO.Directory.Exists(fileName)) Then
-                            JSONPath = fileName + "\" + selDataset + "-arcJSONpts.json"
+                            JSONPath = fileName + "\" + "arcJSONpts" + selIndex.ToString + ".json"
                             'Debug.Print(JSONPath)
                             System.IO.File.WriteAllText(JSONPath, esriJson.ToString())
                         End If
@@ -1946,7 +1949,7 @@ Public Class Download
                                                 Dim timeStamp As Int64 = CType(imgID.Remove(imgID.Length - 1, 1), Int64)    'Get rid of the last digit 
                                                 Dim imgDateTime As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0).AddMilliseconds(timeStamp)
                                                 'Download the image to same file Json files are saved as a .Tiff
-                                                If RadioButton1.Checked Then
+                                                If RadioButton1.Checked And imgCount > 0 Then
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".tiff"
                                                     'Debug.Print(imgFile)
                                                     's = HttpWebRequest.Create(parts(1))
@@ -1970,7 +1973,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -1984,7 +1987,7 @@ Public Class Download
                                                     End Try
                                                     'Debug.Print(imgFile)
                                                     'Client.DownloadFile(parts(1), imgFile)
-                                                ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                ElseIf RadioButton2.Checked And imgCount > 0 Then    'Save to the same file as the Json files as a .JPEG
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".jpeg"
                                                     'Debug.Print(imgFile)
                                                     's = HttpWebRequest.Create(parts(1))
@@ -2009,7 +2012,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -2095,7 +2098,7 @@ Public Class Download
 
                         'Create a JSON File on the user's computer 
                         If (System.IO.Directory.Exists(fileName)) Then
-                            JSONPath = fileName + "\" + selDataset + "-arcJSONlines.json"
+                            JSONPath = fileName + "\" + "arcJSONlines" + selIndex.ToString + ".json"
                             'Debug.Print(JSONPath)
                             System.IO.File.WriteAllText(JSONPath, esriJson.ToString())
                         End If
@@ -2655,7 +2658,7 @@ Public Class Download
                                                 Dim timeStamp As Int64 = CType(imgID.Remove(imgID.Length - 1, 1), Int64)    'Get rid of the last digit 
                                                 Dim imgDateTime As DateTime = New DateTime(1970, 1, 1, 0, 0, 0, 0).AddMilliseconds(timeStamp)
                                                 'Download the image to same file Json files are saved as a .Tiff
-                                                If RadioButton1.Checked Then
+                                                If RadioButton1.Checked And imgCount > 0 Then
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".tiff"
                                                     'Debug.Print(imgFile)
                                                     's = HttpWebRequest.Create(parts(1))
@@ -2679,7 +2682,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -2693,7 +2696,7 @@ Public Class Download
                                                     End Try
                                                     'Debug.Print(imgFile)
                                                     'Client.DownloadFile(parts(1), imgFile)
-                                                ElseIf RadioButton2.Checked Then    'Save to the same file as the Json files as a .JPEG
+                                                ElseIf RadioButton2.Checked And imgCount > 0 Then    'Save to the same file as the Json files as a .JPEG
                                                     imgFile = fileName + "\" + selDataset + "_photos" + "\" + imgID + ".jpeg"
                                                     'Debug.Print(imgFile)
                                                     's = HttpWebRequest.Create(parts(1))
@@ -2718,7 +2721,7 @@ Public Class Download
                                                             esriJson.Append("," + Environment.NewLine + """imagePath"": " + """" + imgFile + """")
                                                             'Increment the images progress bar
                                                             progBarCount += 1
-                                                            progLabel.Text = "Downloaded image: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
+                                                            progLabel.Text = "Images Downloaded: " + progBarCount.ToString + " of " + imgCount.ToString + " in " + selDataset
                                                             progBar.Value = progBarCount
                                                             progLabel.Refresh()
                                                             progBar.Refresh()
@@ -2808,7 +2811,7 @@ Public Class Download
 
                         'Create a JSON File on the user's computer 
                         If (System.IO.Directory.Exists(fileName)) Then
-                            JSONPath = fileName + "\" + selDataset + "-arcJSONpolys.json"
+                            JSONPath = fileName + "\" + "arcJSONpolys" + selIndex.ToString + ".json"
                             'Debug.Print(JSONPath)
                             System.IO.File.WriteAllText(JSONPath, esriJson.ToString())
                         End If
@@ -3341,4 +3344,5 @@ Public Class Download
     Private Sub Datasets_SelectedIndexChanged(sender As Object, e As EventArgs) Handles Datasets.SelectedIndexChanged
         Datasets.SelectionMode = SelectionMode.MultiSimple
     End Sub
+
 End Class

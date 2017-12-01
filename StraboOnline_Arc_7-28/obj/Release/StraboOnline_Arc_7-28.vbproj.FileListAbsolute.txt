@@ -33,4 +33,5 @@ C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboO
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.dll
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.xml
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.pdb
+C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.g.resources
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.esriAddIn

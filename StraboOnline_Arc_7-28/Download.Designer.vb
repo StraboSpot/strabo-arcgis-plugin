@@ -57,16 +57,16 @@ Partial Class Download
         '
         Me.Label1.AutoSize = True
         Me.Label1.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.Location = New System.Drawing.Point(229, 90)
+        Me.Label1.Location = New System.Drawing.Point(205, 90)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(182, 29)
+        Me.Label1.Size = New System.Drawing.Size(232, 29)
         Me.Label1.TabIndex = 0
-        Me.Label1.Text = "Log In to Strabo"
+        Me.Label1.Text = "Log In to StraboSpot"
         '
         'Username
         '
         Me.Username.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Username.Location = New System.Drawing.Point(260, 182)
+        Me.Username.Location = New System.Drawing.Point(260, 192)
         Me.Username.Name = "Username"
         Me.Username.Size = New System.Drawing.Size(296, 35)
         Me.Username.TabIndex = 4
@@ -96,11 +96,11 @@ Partial Class Download
         '
         Me.Sel.AutoSize = True
         Me.Sel.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Sel.Location = New System.Drawing.Point(134, 119)
+        Me.Sel.Location = New System.Drawing.Point(110, 119)
         Me.Sel.Name = "Sel"
-        Me.Sel.Size = New System.Drawing.Size(373, 29)
+        Me.Sel.Size = New System.Drawing.Size(423, 29)
         Me.Sel.TabIndex = 7
-        Me.Sel.Text = "Select Strabo Project and Dataset"
+        Me.Sel.Text = "Select StraboSpot Project and Dataset"
         Me.Sel.Visible = False
         '
         'getDatasets
@@ -108,7 +108,7 @@ Partial Class Download
         Me.getDatasets.AutoSize = True
         Me.getDatasets.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.getDatasets.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.getDatasets.Location = New System.Drawing.Point(239, 161)
+        Me.getDatasets.Location = New System.Drawing.Point(244, 162)
         Me.getDatasets.Name = "getDatasets"
         Me.getDatasets.Size = New System.Drawing.Size(128, 35)
         Me.getDatasets.TabIndex = 9
@@ -121,7 +121,7 @@ Partial Class Download
         Me.Datasets.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Datasets.FormattingEnabled = True
         Me.Datasets.ItemHeight = 29
-        Me.Datasets.Location = New System.Drawing.Point(184, 203)
+        Me.Datasets.Location = New System.Drawing.Point(177, 202)
         Me.Datasets.Name = "Datasets"
         Me.Datasets.Size = New System.Drawing.Size(272, 149)
         Me.Datasets.TabIndex = 15
@@ -132,7 +132,7 @@ Partial Class Download
         Me.Projects.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Projects.FormattingEnabled = True
         Me.Projects.ItemHeight = 29
-        Me.Projects.Location = New System.Drawing.Point(184, 203)
+        Me.Projects.Location = New System.Drawing.Point(177, 203)
         Me.Projects.Name = "Projects"
         Me.Projects.Size = New System.Drawing.Size(272, 149)
         Me.Projects.TabIndex = 16
@@ -143,7 +143,7 @@ Partial Class Download
         Me.backForm2.AutoSize = True
         Me.backForm2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.backForm2.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.backForm2.Location = New System.Drawing.Point(12, 515)
+        Me.backForm2.Location = New System.Drawing.Point(12, 466)
         Me.backForm2.Name = "backForm2"
         Me.backForm2.Size = New System.Drawing.Size(148, 35)
         Me.backForm2.TabIndex = 17
@@ -168,7 +168,7 @@ Partial Class Download
         '
         Me.Label4.AutoSize = True
         Me.Label4.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label4.Location = New System.Drawing.Point(84, 187)
+        Me.Label4.Location = New System.Drawing.Point(84, 198)
         Me.Label4.Name = "Label4"
         Me.Label4.Size = New System.Drawing.Size(102, 25)
         Me.Label4.TabIndex = 21
@@ -210,7 +210,7 @@ Partial Class Download
         '
         Me.Browse.AutoSize = True
         Me.Browse.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Browse.Location = New System.Drawing.Point(84, 218)
+        Me.Browse.Location = New System.Drawing.Point(89, 208)
         Me.Browse.Name = "Browse"
         Me.Browse.Size = New System.Drawing.Size(133, 45)
         Me.Browse.TabIndex = 26
@@ -221,7 +221,7 @@ Partial Class Download
         'PathName
         '
         Me.PathName.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.PathName.Location = New System.Drawing.Point(320, 222)
+        Me.PathName.Location = New System.Drawing.Point(289, 216)
         Me.PathName.Name = "PathName"
         Me.PathName.Size = New System.Drawing.Size(267, 35)
         Me.PathName.TabIndex = 27
@@ -235,7 +235,7 @@ Partial Class Download
         Me.BackDatasets.AutoSize = True
         Me.BackDatasets.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.BackDatasets.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.BackDatasets.Location = New System.Drawing.Point(459, 515)
+        Me.BackDatasets.Location = New System.Drawing.Point(465, 466)
         Me.BackDatasets.Name = "BackDatasets"
         Me.BackDatasets.Size = New System.Drawing.Size(169, 35)
         Me.BackDatasets.TabIndex = 31
@@ -247,7 +247,7 @@ Partial Class Download
         '
         Me.choose.AutoSize = True
         Me.choose.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.choose.Location = New System.Drawing.Point(217, 363)
+        Me.choose.Location = New System.Drawing.Point(217, 359)
         Me.choose.Name = "choose"
         Me.choose.Size = New System.Drawing.Size(194, 39)
         Me.choose.TabIndex = 33
@@ -305,7 +305,7 @@ Partial Class Download
         '
         'progBar
         '
-        Me.progBar.Location = New System.Drawing.Point(84, 322)
+        Me.progBar.Location = New System.Drawing.Point(89, 265)
         Me.progBar.Name = "progBar"
         Me.progBar.Size = New System.Drawing.Size(503, 29)
         Me.progBar.TabIndex = 40
@@ -315,7 +315,7 @@ Partial Class Download
         '
         Me.progLabel.AutoSize = True
         Me.progLabel.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.progLabel.Location = New System.Drawing.Point(85, 294)
+        Me.progLabel.Location = New System.Drawing.Point(90, 300)
         Me.progLabel.Name = "progLabel"
         Me.progLabel.Size = New System.Drawing.Size(57, 20)
         Me.progLabel.TabIndex = 41
@@ -325,12 +325,11 @@ Partial Class Download
         'filesSaved
         '
         Me.filesSaved.AutoSize = True
-        Me.filesSaved.Font = New System.Drawing.Font("Microsoft Sans Serif", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.filesSaved.Location = New System.Drawing.Point(163, 218)
+        Me.filesSaved.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.filesSaved.Location = New System.Drawing.Point(85, 185)
         Me.filesSaved.Name = "filesSaved"
-        Me.filesSaved.Size = New System.Drawing.Size(123, 40)
+        Me.filesSaved.Size = New System.Drawing.Size(0, 25)
         Me.filesSaved.TabIndex = 42
-        Me.filesSaved.Text = "Files/Images" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "will be saved at: "
         Me.filesSaved.Visible = False
         '
         'Download
@@ -339,22 +338,16 @@ Partial Class Download
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
-        Me.ClientSize = New System.Drawing.Size(640, 562)
-        Me.Controls.Add(Me.filesSaved)
+        Me.ClientSize = New System.Drawing.Size(642, 511)
+        Me.Controls.Add(Me.PathName)
+        Me.Controls.Add(Me.Projects)
         Me.Controls.Add(Me.choose)
-        Me.Controls.Add(Me.progLabel)
-        Me.Controls.Add(Me.progBar)
         Me.Controls.Add(Me.getDatasets)
         Me.Controls.Add(Me.RadioButton2)
-        Me.Controls.Add(Me.RadioButton1)
         Me.Controls.Add(Me.browseDir)
         Me.Controls.Add(Me.BackDatasets)
-        Me.Controls.Add(Me.PathName)
-        Me.Controls.Add(Me.Browse)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.LinkLabel1)
-        Me.Controls.Add(Me.Label3)
-        Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.straboToGIS)
         Me.Controls.Add(Me.backForm2)
         Me.Controls.Add(Me.Sel)
@@ -362,8 +355,14 @@ Partial Class Download
         Me.Controls.Add(Me.PasswordBox)
         Me.Controls.Add(Me.Username)
         Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.progLabel)
+        Me.Controls.Add(Me.progBar)
+        Me.Controls.Add(Me.RadioButton1)
+        Me.Controls.Add(Me.filesSaved)
+        Me.Controls.Add(Me.Browse)
+        Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Datasets)
-        Me.Controls.Add(Me.Projects)
+        Me.Controls.Add(Me.Label3)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "Download"
         Me.ShowIcon = False

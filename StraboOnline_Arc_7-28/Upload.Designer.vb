@@ -49,11 +49,11 @@ Partial Class Upload
         '
         Me.Label1.AutoSize = True
         Me.Label1.Font = New System.Drawing.Font("Microsoft Sans Serif", 11.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label1.Location = New System.Drawing.Point(109, 90)
+        Me.Label1.Location = New System.Drawing.Point(82, 90)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(388, 26)
+        Me.Label1.Size = New System.Drawing.Size(433, 26)
         Me.Label1.TabIndex = 0
-        Me.Label1.Text = "Upload ArcGIS Geodatabase to Strabo"
+        Me.Label1.Text = "Upload ArcGIS Geodatabase to StraboSpot"
         '
         'RadioButton1
         '
@@ -61,10 +61,10 @@ Partial Class Upload
         Me.RadioButton1.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.RadioButton1.Location = New System.Drawing.Point(136, 158)
         Me.RadioButton1.Name = "RadioButton1"
-        Me.RadioButton1.Size = New System.Drawing.Size(308, 29)
+        Me.RadioButton1.Size = New System.Drawing.Size(349, 29)
         Me.RadioButton1.TabIndex = 2
         Me.RadioButton1.TabStop = True
-        Me.RadioButton1.Text = "Update Existing Strabo Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
+        Me.RadioButton1.Text = "Update Existing StraboSpot Dataset" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10)
         Me.ToolTip1.SetToolTip(Me.RadioButton1, resources.GetString("RadioButton1.ToolTip"))
         Me.RadioButton1.UseVisualStyleBackColor = True
         Me.RadioButton1.Visible = False
@@ -156,10 +156,10 @@ Partial Class Upload
         Me.RadioButton3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.RadioButton3.Location = New System.Drawing.Point(136, 213)
         Me.RadioButton3.Name = "RadioButton3"
-        Me.RadioButton3.Size = New System.Drawing.Size(275, 29)
+        Me.RadioButton3.Size = New System.Drawing.Size(316, 29)
         Me.RadioButton3.TabIndex = 37
         Me.RadioButton3.TabStop = True
-        Me.RadioButton3.Text = "Create New Strabo Dataset"
+        Me.RadioButton3.Text = "Create New StraboSpot Dataset"
         Me.ToolTip1.SetToolTip(Me.RadioButton3, resources.GetString("RadioButton3.ToolTip"))
         Me.RadioButton3.UseVisualStyleBackColor = True
         Me.RadioButton3.Visible = False

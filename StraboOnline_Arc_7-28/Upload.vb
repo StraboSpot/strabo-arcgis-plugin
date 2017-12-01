@@ -259,6 +259,8 @@ Public Class Upload
             'Append everthing in the row sent to the function 
             Dim planarOri As String = ""
             Dim linearOri As String = ""
+            Dim sample As String = ""
+            Dim trace As String = ""
             For Each at In spotAttr 'There should only be one 
                 Debug.Print(at.ToString)
                 strLine = at.ToString.Trim("[", "]").Trim
@@ -270,17 +272,21 @@ Public Class Upload
                 If parts(0).Contains("C_date") Or parts(0).Contains("E_date") Then
                     Continue For
                 End If
-                If parts(0).Contains("strike") Or parts(0).Contains("dip") Then 'Add to the Planar String
+                If parts(0).Contains("strike") Or parts(0).Contains("dip") Or parts(0).Contains("facing") Then 'Add to the Planar String
                     planarOri += """" + parts(0).Trim + """" + ":" + """" + parts(1).Trim + """" + "," + "/"
-                ElseIf parts(0).Contains("trend") Or parts(0).Contains("plunge") Or parts(0).Contains("rake") Then  'Add to the Linear String
+                ElseIf parts(0).Contains("trend") Or parts(0).Contains("plunge") Or parts(0).Contains("rake") Or parts(0).Contains("facing") Then  'Add to the Linear String
                     linearOri += """" + parts(0).Trim + """" + ":" + """" + parts(1).Trim + """" + "," + "/"
+                ElseIf parts(0).Contains("sample_notes") Or parts(0).Contains("sample_id_name") Or parts(0).Contains("sample_orientation_notes") Or parts(0).Contains("sample_description") Then
+                    sample += """" + parts(0).Trim + """" + ":" + """" + parts(1).Trim + """" + "," + "/"
+                ElseIf parts(0).Contains("trace_notes") Then
+                    trace += """" + parts(0).Trim + """" + ":" + """" + parts(1).Trim + """" + ","
                 ElseIf parts(0).Contains("id") Or parts(0).Contains("modified_timestamp") Then  'Make sure their values aren't quoted!
                     newSpot.Append("""" + parts(0).Trim + """" + ":" + parts(1).Trim + ",")
                 Else
                     newSpot.Append("""" + parts(0).Trim + """" + ":" + """" + parts(1).Trim + """" + ",")
                 End If
             Next
-            'Add nested arrays **********WORK IN PROGRESS********************************************************************************************
+            'Add nested arrays for Planar/Linear Orientations, Samples, and Traces (possibly more if asked?)
             Dim splitLines As String()
             If Not planarOri.Equals("") Then
                 newSpot.Append("""orientation_data"": [{")
@@ -324,6 +330,33 @@ Public Class Upload
                     newSpot.Append(CType(newID, Int64))
                 End If
                 newSpot.Append("}],")
+            End If
+            If Not sample.Equals("") Then
+                newSpot.Append("""samples"": [{")
+                splitLines = sample.Split(New Char() {"/"}, StringSplitOptions.RemoveEmptyEntries)
+                For Each i As String In splitLines
+                    newSpot.Append(i)
+                Next
+                newSpot.Append("""id"":")
+                rand = New Random
+                randDig = rand.Next(1, 10)
+                unixTime = CType((DateTime.UtcNow - startEpoch).TotalMilliseconds, Int64)
+                newID = unixTime.ToString + randDig
+                If Not usedIDs.Contains(newID) Then
+                    newSpot.Append(CType(newID, Int64))
+                    usedIDs += newID
+                Else
+                    newID = generateNewID(usedIDs)
+                    usedIDs += newID
+                    newSpot.Append(CType(newID, Int64))
+                End If
+                newSpot.Append("}],")
+            End If
+            If Not trace.Equals("") Then
+                newSpot.Append("""trace"": {")
+                newSpot.Append(trace)
+                newSpot.Append("""trace_feature"": true")
+                newSpot.Append("},")
             End If
             newSpot.Remove(newSpot.Length - 1, 1)   'Get rid of last comma
             newSpot.Append("}," + """type"": ""Feature""}")
@@ -1119,7 +1152,7 @@ Public Class Upload
                 'Update the dataset in Strabo- change modified timestamp to reflect the change for versioning purposes 
                 modTimeStamp = CType((DateTime.UtcNow - startEpoch).TotalMilliseconds, Int64)
                 today = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                Debug.Print("Dataset Name: " + straboDatasetName)
+                Debug.Print("Dataset Name: " + straboDatasetName)   'This name won't be correct... should see if I can update without 
                 Debug.Print("Dataset Number: " + selDatasetNum)
                 Debug.Print("Dataset File Name: " + datasetFileName)
                 uri = "https://strabospot.org/db/dataset/" + selDatasetNum
