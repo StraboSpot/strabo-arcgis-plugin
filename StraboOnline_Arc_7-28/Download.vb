@@ -94,6 +94,7 @@ Public Class Download
                     LogIn.Visible = False
                     Username.Visible = False
                     PasswordBox.Visible = False
+                    SaveSettings.Visible = False
 
                     'Turn on Strabo Choose Phase elements
                     Sel.Visible = True
@@ -109,7 +110,12 @@ Public Class Download
             Catch WebException As Exception
                 MessageBox.Show(WebException.Message)
             End Try
+        End If
 
+        'Save Username and Password if the user checks 'SaveSettings' Checkbox
+        If SaveSettings.Checked Then
+            My.Settings.Username = emailaddress
+            My.Settings.Password = password
         End If
 
     End Sub
@@ -179,6 +185,7 @@ Public Class Download
         LogIn.Visible = True
         Username.Visible = True
         PasswordBox.Visible = True
+        SaveSettings.Visible = True
         'Hide Strabo Choose Phase elements 
         Sel.Visible = False
         getDatasets.Visible = False
@@ -549,7 +556,6 @@ Public Class Download
                 propItem.Len = cardDir.Length
                 propItem.Value = cardDir
                 image.SetPropertyItem(propItem)
-                image.SetPropertyItem(propItem)
             ElseIf CType(latitude, Integer) > 0 Then
                 'Debug.Print("North latitude")
                 cardDir(0) = Asc("N")
@@ -608,9 +614,9 @@ Public Class Download
 
         'Iterate each of the selected Strabo Datasets and add them as Feature Datasets
         'Points, Lines, Polygons, Tags, and Images get saved within the Feature Dataset as Feature Classes
-        For Each index In Datasets.SelectedIndices
-            Debug.Print(index.ToString)
-        Next
+        'For Each index In Datasets.SelectedIndices
+        '    Debug.Print(index.ToString)
+        'Next
         For Each selected In Datasets.SelectedIndices
             'Save the name and index of the user selected dataset 
             Dim selIndex As Integer
@@ -2867,7 +2873,9 @@ Public Class Download
                 Debug.Print(responseFromServer)
 
                 JSONPath = fileName + "\project-" + selprojectNum + ".json"
-                System.IO.File.WriteAllText(JSONPath, responseFromServer)
+                If Not System.IO.File.Exists(JSONPath) Then
+                    System.IO.File.WriteAllText(JSONPath, responseFromServer)
+                End If
 
                 prj = New JavaScriptSerializer().Deserialize(Of Object)(responseFromServer)
 
@@ -2884,13 +2892,23 @@ Public Class Download
                 'Iterate the tags json to check for the tags that have SpotIDs that were found in the dataset
                 'This is because tags can be used in multiple datasets in a Strabo project, but we want just those data
                 'from the Strabo dataset, so the Tags table can then be joined to the points, lines, and polygons feature classes
+                Dim fullTagsFields As New List(Of String)
                 If prj.ContainsKey("tags") Then
                     For Each tg In prj("tags")
+                        For Each ln In tg
+                                strLine = ln.ToString().Trim("[", "]").Trim
+                                parts = strLine.Split(New Char() {","}, 2)
+                                If parts(0).Equals("id") Then
+                                    parts(0) = "tagID"
+                                End If
+                                If Not fullTagsFields.Contains(parts(0).ToString) Then
+                                    fullTagsFields.Add(parts(0))
+                                End If
+                        Next
                         If tg.ContainsKey("spots") Then
                             For Each spot In tg("spots")
                                 If spotIDs.Contains(spot.ToString) Then 'It belongs with the dataset(s)
                                     For Each line In tg
-                                        If Not line.ToString.Contains("System.Object") Then
                                             strLine = line.ToString().Trim("[", "]").Trim
                                             parts = strLine.Split(New Char() {","}, 2)
                                             If parts(0).Equals("id") Then
@@ -2899,7 +2917,6 @@ Public Class Download
                                             If Not tagFields.Contains(parts(0).ToString) Then
                                                 tagFields.Add(parts(0))
                                             End If
-                                        End If
                                     Next
                                     numTags += 1
                                 End If
@@ -2908,7 +2925,95 @@ Public Class Download
                     Next
                     'If there are tags associated with this dataset (checked with Spot IDs) then create all the Tags Feature Classes
                     If numTags > 0 Then
-                        'Create the Tags Table in ArcMap 
+                        selProject = selProject.Replace(" ", String.Empty)
+                        'Create the Tags Table for the Project in ArcMap
+                        makeTable.out_path = envPath
+                        makeTable.out_name = selProject + "_Tags"
+                        Try
+                            geoproc.Execute(makeTable, Nothing)
+                            Debug.Print(geoproc.GetMessages(sev))
+                        Catch ex As Exception
+                            Debug.Print(geoproc.GetMessages(sev))
+                        End Try
+                        Dim prjTagsTable As String = envPath + "\" + selProject + "_Tags"
+                        Dim prjTagsTableNoPath As String = selProject + "_Tags"
+                        'Add the fields to the table
+                        If geoproc.Exists(prjTagsTable, dt) Then
+                            addFields.in_table = prjTagsTable
+                            For Each field In fullTagsFields
+                                Debug.Print(field)
+                                addFields.field_name = field
+                                addFields.field_type = "TEXT"
+                                If field.Equals("description") Or field.Equals("notes") Or field.Equals("spots") Then
+                                    addFields.field_length = 1024
+                                Else
+                                    addFields.field_length = 160
+                                End If
+                                Try
+                                    geoproc.Execute(addFields, Nothing)
+                                    Console.WriteLine(geoproc.GetMessages(sev))
+                                Catch ex As Exception
+                                    Console.WriteLine(geoproc.GetMessages(sev))
+                                End Try
+                            Next
+                        End If
+
+                        'Create Project Tags Table
+                        Dim featWorkspace As IFeatureWorkspace = CType(workspace, IFeatureWorkspace)
+                        Debug.Print("Adding rows to table...")
+                        Dim tagTable_prj As ITable = featWorkspace.OpenTable(prjTagsTableNoPath)
+                        'Dim rowSubTypes As IRowSubtypes
+                        Dim fieldIndex As Integer
+                        'Dim row As IRow
+                        Dim iCur_prj As ICursor = tagTable_prj.Insert(True)
+                        Dim rowBuf_prj As IRowBuffer
+                        Dim tgNum As Integer = 0
+                        For Each tg In prj("tags")
+                            rowBuf_prj = tagTable_prj.CreateRowBuffer()
+                            For Each ln In tg
+                                strLine = ln.ToString().Trim("[", "]").Trim
+                                parts = strLine.Split(New Char() {","}, 2)
+                                Debug.Print(parts(0) + " " + parts(1).ToString)
+                                Debug.Print(ln.ToString)
+                                If Not ln.ToString.Contains("System.Object") Then
+                                    If parts(0).Equals("id") Then
+                                        parts(0) = "tagID"
+                                    End If
+                                    fieldIndex = tagTable_prj.FindField(parts(0))
+                                    rowBuf_prj.Value(fieldIndex) = parts(1).TrimStart
+                                    Debug.Print(parts(0) + " " + parts(1))
+                                    Continue For
+                                ElseIf ln.ToString.Contains("System.Object") Then
+                                    Debug.Print(parts(0))
+                                    If String.IsNullOrEmpty(parts(1)) Then
+                                        parts(1) = ""
+                                    Else
+                                        parts(1) = Replace(parts(1), vbLf, "")
+                                        parts(1) = Replace(parts(1), """", "'")
+                                    End If
+                                    Dim elementList As String = ""
+                                    For Each i In tg(parts(0))
+                                        Debug.Print(i.ToString)
+                                        elementList = elementList + i.ToString + ", "
+                                    Next
+                                    fieldIndex = tagTable_prj.FindField(parts(0))
+                                    rowBuf_prj.Value(fieldIndex) = elementList.Remove(elementList.Length - 2)
+                                    Debug.Print(parts(0) + " " + elementList.Remove(elementList.Length - 2))
+                                End If
+                            Next
+                            iCur_prj.InsertRow(rowBuf_prj)
+                            tgNum += 1
+                        Next
+                        Try
+                            iCur_prj.Flush()
+                        Catch ex As Exception
+                            Console.WriteLine(ex.Message)
+                        Finally
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(iCur_prj)
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(rowBuf_prj)
+                        End Try
+
+                        'Create the Tags Table for the Feature Class in ArcMap 
                         makeTable.out_path = envPath
                         makeTable.out_name = selDataset + "_Tags"
                         Try
@@ -2947,14 +3052,14 @@ Public Class Download
                         Debug.Print("Fields added to the table...")
                         'Add tag data to the TagsTable
                         'Dim workspaceFactory As IWorkspaceFactory = New ESRI.ArcGIS.DataSourcesGDB.FileGDBWorkspaceFactory
-                        Dim featWorkspace As IFeatureWorkspace = CType(workspace, IFeatureWorkspace)
+                        'Dim featWorkspace As IFeatureWorkspace = CType(workspace, IFeatureWorkspace)
                         Debug.Print("Adding rows to table...")
                         Dim tagTable As ITable = featWorkspace.OpenTable(tagsTableNoPath)
                         'Dim rowSubTypes As IRowSubtypes
-                        Dim fieldIndex As Integer
                         'Dim row As IRow
-                        Dim iCur As ICursor = tagTable.Insert(True)
                         Dim rowBuf As IRowBuffer
+                        Dim iCur As ICursor = tagTable.Insert(True)
+                        tgNum = 0
                         For Each tg In prj("tags")
                             If tg.ContainsKey("spots") Then
                                 For Each spot In tg("spots")
@@ -2966,21 +3071,38 @@ Public Class Download
                                         fieldIndex = tagTable.FindField("SpotID")
                                         rowBuf.Value(fieldIndex) = spot.ToString
                                         For Each line In tg
+                                            strLine = line.ToString().Trim("[", "]").Trim
+                                            parts = strLine.Split(New Char() {","}, 2)
                                             If Not line.ToString.Contains("System.Object") Then
-                                                strLine = line.ToString().Trim("[", "]").Trim
-                                                parts = strLine.Split(New Char() {","}, 2)
                                                 If parts(0).Equals("id") Then
                                                     parts(0) = "tagID"
                                                 End If
                                                 fieldIndex = tagTable.FindField(parts(0))
                                                 rowBuf.Value(fieldIndex) = parts(1).TrimStart
                                                 Debug.Print(parts(0) + " " + parts(1))
+                                                Continue For
+                                            ElseIf line.ToString.Contains("System.Object") Then
+                                                Debug.Print(parts(0))
+                                                If String.IsNullOrEmpty(parts(1)) Then
+                                                    parts(1) = ""
+                                                Else
+                                                    parts(1) = Replace(parts(1), vbLf, "")
+                                                    parts(1) = Replace(parts(1), """", "'")
+                                                End If
+                                                Dim elementList As String = ""
+                                                For Each i In tg(parts(0))
+                                                    elementList = elementList + i.ToString() + ", "
+                                                Next
+                                                fieldIndex = tagTable.FindField(parts(0))
+                                                rowBuf.Value(fieldIndex) = elementList.Remove(elementList.Length - 2)
+                                                Debug.Print(parts(0) + " " + elementList.Remove(elementList.Length - 2))
                                             End If
                                         Next
                                         iCur.InsertRow(rowBuf)
                                     End If
                                 Next
                             End If
+                            tgNum += 1
                         Next
                         Try
                             iCur.Flush()

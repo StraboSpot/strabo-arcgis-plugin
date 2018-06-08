@@ -2714,6 +2714,7 @@ Public Class Upload
                 Username.Visible = False
                 PasswordBox.Visible = False
                 LogIn.Visible = False
+                SaveSettingsUpload.Visible = False
 
                 'Make tools for choosing upload method visible 
                 RadioButton1.Visible = True
@@ -2730,6 +2731,13 @@ Public Class Upload
         Catch WebException As Exception
             MessageBox.Show(WebException.Message)
         End Try
+
+        'Save Username and Password if the user checks 'SaveSettings' Checkbox
+        If SaveSettingsUpload.Checked Then
+            My.Settings.Username = emailaddress
+            My.Settings.Password = password
+        End If
+
 
     End Sub
 
@@ -2748,6 +2756,7 @@ Public Class Upload
             Username.Visible = True
             PasswordBox.Visible = True
             LogIn.Visible = True
+            SaveSettingsUpload.Visible = True
 
         ElseIf ListBox1.Visible = True Then
             'Go back to the options screen 

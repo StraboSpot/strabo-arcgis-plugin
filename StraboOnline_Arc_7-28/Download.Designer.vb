@@ -51,6 +51,7 @@ Partial Class Download
         Me.progBar = New System.Windows.Forms.ProgressBar()
         Me.progLabel = New System.Windows.Forms.Label()
         Me.filesSaved = New System.Windows.Forms.Label()
+        Me.SaveSettings = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'Label1
@@ -201,9 +202,9 @@ Partial Class Download
         Me.Label2.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.Label2.Location = New System.Drawing.Point(162, 105)
         Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(317, 29)
+        Me.Label2.Size = New System.Drawing.Size(336, 29)
         Me.Label2.TabIndex = 25
-        Me.Label2.Text = "Create ArcGIS Geodatabase"
+        Me.Label2.Text = "Creating ArcGIS Geodatabase"
         Me.Label2.Visible = False
         '
         'Browse
@@ -332,6 +333,18 @@ Partial Class Download
         Me.filesSaved.TabIndex = 42
         Me.filesSaved.Visible = False
         '
+        'SaveSettings
+        '
+        Me.SaveSettings.AutoSize = True
+        Me.SaveSettings.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.SaveSettings.Location = New System.Drawing.Point(167, 400)
+        Me.SaveSettings.Name = "SaveSettings"
+        Me.SaveSettings.Size = New System.Drawing.Size(308, 29)
+        Me.SaveSettings.TabIndex = 43
+        Me.SaveSettings.Text = "Save Username and Password"
+        Me.SaveSettings.UseVisualStyleBackColor = True
+        Me.SaveSettings.Visible = False
+        '
         'Download
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
@@ -339,9 +352,8 @@ Partial Class Download
         Me.AutoSize = True
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(642, 511)
+        Me.Controls.Add(Me.SaveSettings)
         Me.Controls.Add(Me.PathName)
-        Me.Controls.Add(Me.Projects)
-        Me.Controls.Add(Me.choose)
         Me.Controls.Add(Me.getDatasets)
         Me.Controls.Add(Me.RadioButton2)
         Me.Controls.Add(Me.browseDir)
@@ -363,6 +375,8 @@ Partial Class Download
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.Datasets)
         Me.Controls.Add(Me.Label3)
+        Me.Controls.Add(Me.Projects)
+        Me.Controls.Add(Me.choose)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Name = "Download"
         Me.ShowIcon = False
@@ -398,4 +412,5 @@ Partial Class Download
     Friend WithEvents progBar As System.Windows.Forms.ProgressBar
     Friend WithEvents progLabel As System.Windows.Forms.Label
     Friend WithEvents filesSaved As System.Windows.Forms.Label
+    Friend WithEvents SaveSettings As System.Windows.Forms.CheckBox
 End Class

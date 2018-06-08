@@ -43,6 +43,7 @@ Partial Class Upload
         Me.RadioButton2 = New System.Windows.Forms.RadioButton()
         Me.ToolTip1 = New System.Windows.Forms.ToolTip(Me.components)
         Me.RadioButton4 = New System.Windows.Forms.RadioButton()
+        Me.SaveSettingsUpload = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'Label1
@@ -245,12 +246,25 @@ Partial Class Upload
         Me.RadioButton4.UseVisualStyleBackColor = True
         Me.RadioButton4.Visible = False
         '
+        'SaveSettingsUpload
+        '
+        Me.SaveSettingsUpload.AutoSize = True
+        Me.SaveSettingsUpload.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.SaveSettingsUpload.Location = New System.Drawing.Point(154, 355)
+        Me.SaveSettingsUpload.Name = "SaveSettingsUpload"
+        Me.SaveSettingsUpload.Size = New System.Drawing.Size(308, 29)
+        Me.SaveSettingsUpload.TabIndex = 49
+        Me.SaveSettingsUpload.Text = "Save Username and Password"
+        Me.SaveSettingsUpload.UseVisualStyleBackColor = True
+        Me.SaveSettingsUpload.Visible = False
+        '
         'Upload
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(144.0!, 144.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.ClientSize = New System.Drawing.Size(596, 467)
+        Me.Controls.Add(Me.SaveSettingsUpload)
         Me.Controls.Add(Me.RadioButton4)
         Me.Controls.Add(Me.RadioButton3)
         Me.Controls.Add(Me.RadioButton1)
@@ -295,4 +309,5 @@ Partial Class Upload
     Friend WithEvents RadioButton2 As System.Windows.Forms.RadioButton
     Friend WithEvents ToolTip1 As System.Windows.Forms.ToolTip
     Friend WithEvents RadioButton4 As System.Windows.Forms.RadioButton
+    Friend WithEvents SaveSettingsUpload As System.Windows.Forms.CheckBox
 End Class
