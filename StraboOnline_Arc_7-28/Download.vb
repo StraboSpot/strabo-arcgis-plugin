@@ -3036,7 +3036,7 @@ Public Class Download
                                 'Debug.Print(field)
                                 addFields.field_name = field
                                 addFields.field_type = "TEXT"
-                                If field.Equals("description") Or field.Equals("notes") Then
+                                If field.Equals("description") Or field.Equals("notes") Or field.Equals("spots") Then
                                     addFields.field_length = 1024
                                 Else
                                     addFields.field_length = 160

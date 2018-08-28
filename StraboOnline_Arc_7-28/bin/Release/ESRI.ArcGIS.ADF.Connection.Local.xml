@@ -4,112 +4,6 @@
         <name>ESRI.ArcGIS.ADF.Connection.Local</name>
     </assembly>
     <members>
-        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName">
-            <summary>Information about an ArcGIS Server object (service).</summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.#ctor">
-            <summary>Creates an empty ServerObjectName object.</summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.#ctor(System.String,System.String)">
-            <summary>Creates a ServerObjectName object with the specified name and type.</summary>
-            <param name="name">Name of the ServerObject</param>
-            <param name="type">Type of ServerObject (e.g., MapServer or GeocodeServer).</param>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.ToString">
-            <summary>
-            The name of the server object.
-            </summary>
-            <returns>The name of the server object.</returns>
-        </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Name">
-            <summary>
-            The name of the server object.
-            </summary>
-        </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Type">
-            <summary>
-            The type of the server object.
-            </summary>
-        </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Extensions">
-            <seealso cref="T:System.Collections.Specialized.StringCollection"/>
-            <seealso cref="T:System.Collections.Specialized.StringCollection"/>
-            <summary>Get/Set a StringCollection of extensions associated with this service.</summary>
-        </member>
-        <member name="T:ESRI.ArcGIS.ADF.ComReleaser">
-            <summary>
-            A Base object to assist devloping against COM objects that require a deterministic release pattern.
-            </summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.#ctor">
-            <summary>
-            Default Constructor
-            </summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Finalize">
-            <summary>
-            Destructor
-            </summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.ManageLifetime(System.Object)">
-            <summary>
-            Manages the lifetime of any COM object.  The method will deterministically release the object during the dispose process.
-            </summary>
-            <remarks>
-            Marshal.ReleaseComObject will be called during the disposal process on this Interface pointer until its RCW
-            reference count becomes 0.  
-            NOTE: Do not add ServerObject interfaces like IMapServer, IGeocodeServer, IMapServerLayout or IMapServerObjects.
-            </remarks>
-            <param name="o">The COM object to manage.</param>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Dispose">
-            <summary>
-            Implementation of IDisposable method Dispose()
-            The Dispose method should release all the resources that it owns for unmanaged code resources.
-            </summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Dispose(System.Boolean)">
-            <summary>
-            Dispose method implementation from IDisposable Interface
-            </summary>
-            <param name="disposing">
-            Boolean value indicating to the method whether 
-            or not it should also dispose managed objects
-            </param>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.ReleaseCOMObject(System.Object)">
-            <summary>
-            Decrements the reference count to zero of the supplied runtime callable wrapper.
-            </summary>
-            <param name="o">The COM object to release.</param>
-        </member>
-        <member name="T:ESRI.ArcGIS.ADF.Connection.ResourceUtility">
-            <summary>
-            Resource.
-            </summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.ResourceUtility.GetResourceString(System.String)">
-            <summary>
-            Get resource string
-            </summary>
-            <param name="name">Resource name</param>
-        </member>
-        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory">
-            <summary>Used as factory to create a new connection to an ArcGIS Server.</summary>
-            <remarks>
-            This method is used to create a new connection to an ArcGIS Server machine
-            without requiring a Map or other control on the page.
-            </remarks>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory.#ctor">
-            <summary>Default Constructor.</summary>
-        </member>
-        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory.CreateServerConnection(System.String,ESRI.ArcGIS.ADF.Identity)">
-            <summary>Returns an ArcGIS Server connection instance.</summary>
-            <returns>Server connection instance type-casted to IServerConnection.</returns>
-            <param name="connectionString">Contains the name of the ArcGIS host.</param>
-            <param name="identity">The identity with credentials for connecting to the ArcGIS Server.</param>
-        </member>
         <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection">
             <summary>
             The connection to a Server Object Manager on an ArcGIS Server.
@@ -172,6 +66,16 @@
             <param name="userInfo">User information to check for permissions.</param>
             <param name="connect">Indicates whether to connect on initialization.</param>
         </member>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.#ctor(System.String,ESRI.ArcGIS.ADF.Identity,System.String,System.Boolean,System.Boolean)">
+            <summary>
+            Initializes a new instance of the AGSServerConnection class with the specified parameters
+            </summary>
+            <param name="host">Host name of machine where the ArcGIS Server Object Manager exists</param>
+            <param name="identity"><see cref="T:ESRI.ArcGIS.ADF.Identity">
+            Identity</see> for connecting to the server.</param>
+            <param name="userInfo">User information to check for permissions.</param>
+            <param name="connect">Indicates whether to connect on initialization.</param>
+        </member>
         <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.Finalize">
             <summary>
             Default class destructor
@@ -189,6 +93,19 @@
             </summary>
             <param name="disposing">Boolean value indicating to the method whether or not it should also dispose managed objects</param>
         </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.Host">
+            <summary>Host name of the ArcGIS Server - Server Object Manager (SOM) machine.</summary>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.ServerObjectManager">
+            <summary>
+            ArcGIS Server IServerObjectManager object
+            </summary>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.ServerObjectAdmin">
+            <summary>
+            ArcGIS Server IServerObjectManagerAdmin object
+            </summary>
+        </member>
         <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.Connect">
             <summary>
             Connect to the ArcGIS Server at the specified Host
@@ -201,6 +118,11 @@
             </summary>
             <param name="throwExceptionOnUnauthorizedAccess">Controls whether an exception is thrown when a UnAuthorizedAcessException is caught when connecting.</param>
             <exception cref="T:ESRI.ArcGIS.ADF.Connection.ServerHostNullException"></exception>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.IsConnected">
+            <summary>
+            True if the ServerConnection is established, false otherwise.
+            </summary>
         </member>
         <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.IsAlive">
             <summary>
@@ -376,28 +298,21 @@
             <param name="serverObjectType">The type of server object.</param>
             <returns>True if server object is pooled.  False if it is not.</returns>
         </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.Host">
-            <summary>Host name of the ArcGIS Server - Server Object Manager (SOM) machine.</summary>
+        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory">
+            <summary>Used as factory to create a new connection to an ArcGIS Server.</summary>
+            <remarks>
+            This method is used to create a new connection to an ArcGIS Server machine
+            without requiring a Map or other control on the page.
+            </remarks>
         </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.ServerObjectManager">
-            <summary>
-            ArcGIS Server IServerObjectManager object
-            </summary>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory.#ctor">
+            <summary>Default Constructor.</summary>
         </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.ServerObjectAdmin">
-            <summary>
-            ArcGIS Server IServerObjectManagerAdmin object
-            </summary>
-        </member>
-        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnection.IsConnected">
-            <summary>
-            True if the ServerConnection is established, false otherwise.
-            </summary>
-        </member>
-        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.Constants">
-            <summary>
-            Summary description for Constants.
-            </summary>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.AGSServerConnectionFactory.CreateServerConnection(System.String,ESRI.ArcGIS.ADF.Identity)">
+            <summary>Returns an ArcGIS Server connection instance.</summary>
+            <returns>Server connection instance type-casted to IServerConnection.</returns>
+            <param name="connectionString">Contains the name of the ArcGIS host.</param>
+            <param name="identity">The identity with credentials for connecting to the ArcGIS Server.</param>
         </member>
         <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.ComHelper">
             <summary>
@@ -409,6 +324,43 @@
             Dispose method implementation from IDisposable Interface
             </summary>
             <param name="disposing">Boolean value indicating to the method whether or not it should also dispose managed objects</param>
+        </member>
+        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.Constants">
+            <summary>
+            Summary description for Constants.
+            </summary>
+        </member>
+        <member name="T:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName">
+            <summary>Information about an ArcGIS Server object (service).</summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.#ctor">
+            <summary>Creates an empty ServerObjectName object.</summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.#ctor(System.String,System.String)">
+            <summary>Creates a ServerObjectName object with the specified name and type.</summary>
+            <param name="name">Name of the ServerObject</param>
+            <param name="type">Type of ServerObject (e.g., MapServer or GeocodeServer).</param>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Name">
+            <summary>
+            The name of the server object.
+            </summary>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Type">
+            <summary>
+            The type of the server object.
+            </summary>
+        </member>
+        <member name="P:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.Extensions">
+            <seealso cref="T:System.Collections.Specialized.StringCollection"/>
+            <seealso cref="T:System.Collections.Specialized.StringCollection"/>
+            <summary>Get/Set a StringCollection of extensions associated with this service.</summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.AGS.ServerObjectName.ToString">
+            <summary>
+            The name of the server object.
+            </summary>
+            <returns>The name of the server object.</returns>
         </member>
         <member name="T:ESRI.ArcGIS.ADF.Connection.Local.Converter">
             <summary>
@@ -463,6 +415,64 @@
             <param name="from">ServerContext to copy from.</param>
             <param name="to">ServerContext to copy to.</param>
             <returns>Copied object.</returns>
+        </member>
+        <member name="T:ESRI.ArcGIS.ADF.Connection.ResourceUtility">
+            <summary>
+            Resource.
+            </summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.Connection.ResourceUtility.GetResourceString(System.String)">
+            <summary>
+            Get resource string
+            </summary>
+            <param name="name">Resource name</param>
+        </member>
+        <member name="T:ESRI.ArcGIS.ADF.ComReleaser">
+            <summary>
+            A Base object to assist devloping against COM objects that require a deterministic release pattern.
+            </summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.#ctor">
+            <summary>
+            Default Constructor
+            </summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Finalize">
+            <summary>
+            Destructor
+            </summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.ManageLifetime(System.Object)">
+            <summary>
+            Manages the lifetime of any COM object.  The method will deterministically release the object during the dispose process.
+            </summary>
+            <remarks>
+            Marshal.ReleaseComObject will be called during the disposal process on this Interface pointer until its RCW
+            reference count becomes 0.  
+            NOTE: Do not add ServerObject interfaces like IMapServer, IGeocodeServer, IMapServerLayout or IMapServerObjects.
+            </remarks>
+            <param name="o">The COM object to manage.</param>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Dispose">
+            <summary>
+            Implementation of IDisposable method Dispose()
+            The Dispose method should release all the resources that it owns for unmanaged code resources.
+            </summary>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.Dispose(System.Boolean)">
+            <summary>
+            Dispose method implementation from IDisposable Interface
+            </summary>
+            <param name="disposing">
+            Boolean value indicating to the method whether 
+            or not it should also dispose managed objects
+            </param>
+        </member>
+        <member name="M:ESRI.ArcGIS.ADF.ComReleaser.ReleaseCOMObject(System.Object)">
+            <summary>
+            Decrements the reference count to zero of the supplied runtime callable wrapper.
+            </summary>
+            <param name="o">The COM object to release.</param>
         </member>
     </members>
 </doc>

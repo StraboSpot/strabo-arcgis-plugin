@@ -919,10 +919,10 @@ Public Class Upload
                             End If
                         End If
                     Next
-                    datasetFileName = datasetFileName.Remove(datasetFileName.Length - 5, 5)
+                    datasetFileName = IO.Path.GetFileNameWithoutExtension(datasetFileName)
                     datasetSplit = datasetFileName.Split(New Char() {"-"}, 2)
                     selDatasetNum = datasetSplit(1)
-                    datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
+                    'datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
                     straboDatasetName = datasetSplit(0)
 
                     'GET Dataset GeoJSON
@@ -1152,7 +1152,7 @@ Public Class Upload
                 'Update the dataset in Strabo- change modified timestamp to reflect the change for versioning purposes 
                 modTimeStamp = CType((DateTime.UtcNow - startEpoch).TotalMilliseconds, Int64)
                 today = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-                Debug.Print("Dataset Name: " + straboDatasetName)   'This name won't be correct... should see if I can update without 
+                Debug.Print("Dataset Name: " + straboDatasetName)   'Corrected
                 Debug.Print("Dataset Number: " + selDatasetNum)
                 Debug.Print("Dataset File Name: " + datasetFileName)
                 uri = "https://strabospot.org/db/dataset/" + selDatasetNum
@@ -1710,8 +1710,8 @@ Public Class Upload
                 datasetFileName = datasetFileName.Remove(datasetFileName.Length - 5, 5)
                 datasetSplit = datasetFileName.Split(New Char() {"-"}, 2)
                 selDatasetNum = datasetSplit(1)
-                datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
-                straboDatasetName = datasetSplit(0)
+                'datasetSplit = (New DirectoryInfo(datasetFileName).Parent.Name).Split(New Char() {"_"})
+                'straboDatasetName = datasetSplit(0)
                 Dim wholeJson As Object
                 Dim isCreated As String
                 Dim authorization As String

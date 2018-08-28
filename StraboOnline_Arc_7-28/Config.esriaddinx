@@ -8,7 +8,7 @@
   <Company>University of Kansas- Department of Geology</Company>
   <Date>7/28/2016</Date>
   <Targets>
-    <Target name="Desktop" version="10.3" />
+    <Target name="Desktop" version="10.6" />
   </Targets>
   <AddIn language="CLR" library="StraboOnline_Arc_7-28.dll" namespace="StraboOnline_Arc_7_28">
     <ArcMap>

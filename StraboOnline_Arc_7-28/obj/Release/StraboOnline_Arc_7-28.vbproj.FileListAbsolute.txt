@@ -36,3 +36,45 @@ C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboO
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.g.resources
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.dll.config
 C:\Users\User\Documents\Visual Studio 2013\Projects\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.esriAddIn
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.dll.config
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.pdb
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ConversionTools.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.DataManagementTools.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Geometry.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Geoprocessor.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Version.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.Connection.Local.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ConversionTools.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ConversionTools.dll.config
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.DataManagementTools.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.DataManagementTools.dll.config
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Geometry.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Geoprocessor.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.g.resources
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7_28.CoordsDialog.resources
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7_28.Download.resources
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7_28.Resources.resources
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7_28.Upload.resources
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.vbproj.GenerateResource.cache
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.vbproj.CoreCompileInputs.cache
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.vbproj.CopyComplete
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.pdb
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.Connection.Local.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.GlobeCore.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.3DAnalyst.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.Connection.Core.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.ADF.Core.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Animation.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.DataSourcesNetCDF.dll
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.GlobeCore.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.3DAnalyst.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.Animation.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\ESRI.ArcGIS.DataSourcesNetCDF.xml
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\obj\Release\StraboOnline_Arc_7-28.vbprojAssemblyReference.cache
+C:\Users\sectors\Documents\GitHub\strabo-arcgis-plugin\StraboOnline_Arc_7-28\bin\Release\StraboOnline_Arc_7-28.esriAddIn
